@@ -16,6 +16,7 @@
 ## 🏠 **VPS Deployment (Traditional)**
 
 ### **Pros:**
+
 - ✅ **Full control** over server
 - ✅ **Custom configurations**
 - ✅ **Multiple applications** on one server
@@ -23,6 +24,7 @@
 - ✅ **Familiar** (MySQL, Apache/Nginx)
 
 ### **Cons:**
+
 - ❌ **Complex setup** required
 - ❌ **Server management** needed
 - ❌ **Manual backups** and updates
@@ -30,6 +32,7 @@
 - ❌ **Scaling** is manual
 
 ### **Best For:**
+
 - 🎯 **Experienced developers**
 - 🎯 **Multiple projects**
 - 🎯 **Custom requirements**
@@ -38,6 +41,7 @@
 ## 🌟 **Supabase Deployment**
 
 ### **Pros:**
+
 - ✅ **Free tier** available
 - ✅ **Zero server management**
 - ✅ **Built-in authentication**
@@ -46,12 +50,14 @@
 - ✅ **PostgreSQL database**
 
 ### **Cons:**
+
 - ❌ **Vendor lock-in**
 - ❌ **Limited customization**
 - ❌ **PostgreSQL** (different from MySQL)
 - ❌ **Cost** increases with usage
 
 ### **Best For:**
+
 - 🎯 **Quick deployment**
 - 🎯 **Modern applications**
 - 🎯 **Real-time features**
@@ -60,6 +66,7 @@
 ## 🌊 **Neon Deployment**
 
 ### **Pros:**
+
 - ✅ **Free tier** available
 - ✅ **Serverless database**
 - ✅ **Branching** (like Git for databases)
@@ -67,12 +74,14 @@
 - ✅ **PostgreSQL native**
 
 ### **Cons:**
+
 - ❌ **Database only** (need separate hosting)
 - ❌ **PostgreSQL** (different from MySQL)
 - ❌ **Limited** hosting options
 - ❌ **Newer** platform
 
 ### **Best For:**
+
 - 🎯 **Database-focused** applications
 - 🎯 **Development teams**
 - 🎯 **PostgreSQL** users
@@ -81,6 +90,7 @@
 ## 💰 **Cost Breakdown**
 
 ### **VPS (DigitalOcean):**
+
 ```
 $5/month  - 1GB RAM, 1 CPU, 25GB SSD
 $10/month - 2GB RAM, 2 CPU, 50GB SSD
@@ -88,6 +98,7 @@ $20/month - 4GB RAM, 2 CPU, 80GB SSD
 ```
 
 ### **Supabase:**
+
 ```
 $0/month  - Free tier (500MB DB, 2GB bandwidth)
 $25/month - Pro (8GB DB, 250GB bandwidth)
@@ -95,6 +106,7 @@ $599/month- Team (100GB DB, 1TB bandwidth)
 ```
 
 ### **Neon:**
+
 ```
 $0/month  - Free tier (3GB storage, 100 hours compute)
 $10/month - Starter (10GB storage, 500 hours compute)
@@ -106,6 +118,7 @@ $50/month - Pro (100GB storage, unlimited compute)
 ### **For You (Student Project):**
 
 #### **Option 1: Supabase (Recommended)**
+
 - ✅ **Free to start**
 - ✅ **Easy deployment**
 - ✅ **No server management**
@@ -113,12 +126,14 @@ $50/month - Pro (100GB storage, unlimited compute)
 - ✅ **Built-in features**
 
 #### **Option 2: VPS (If you want to learn)**
+
 - ✅ **Full control**
 - ✅ **Learning experience**
 - ✅ **Cost-effective long-term**
 - ❌ **More complex setup**
 
 #### **Option 3: Neon + Vercel**
+
 - ✅ **Free database**
 - ✅ **Free hosting**
 - ✅ **Modern stack**
@@ -127,6 +142,7 @@ $50/month - Pro (100GB storage, unlimited compute)
 ## 🎯 **Quick Decision Guide:**
 
 ### **Choose Supabase if:**
+
 - 🚀 You want **quick deployment**
 - 💰 You want **free to start**
 - 🔐 You need **built-in authentication**
@@ -134,6 +150,7 @@ $50/month - Pro (100GB storage, unlimited compute)
 - 🎓 This is a **learning project**
 
 ### **Choose VPS if:**
+
 - 🎯 You want **full control**
 - 🧠 You want to **learn server management**
 - 💰 You have **multiple projects**
@@ -141,6 +158,7 @@ $50/month - Pro (100GB storage, unlimited compute)
 - 📚 You're **experienced** with servers
 
 ### **Choose Neon if:**
+
 - 🗄️ You want **PostgreSQL database**
 - 🌊 You like **serverless**
 - 🔄 You need **database branching**
@@ -150,6 +168,7 @@ $50/month - Pro (100GB storage, unlimited compute)
 ## 🚀 **Quick Start Commands:**
 
 ### **Supabase:**
+
 ```bash
 # 1. Create project at supabase.com
 # 2. Run PostgreSQL schema
@@ -159,6 +178,7 @@ vercel
 ```
 
 ### **VPS:**
+
 ```bash
 # 1. Get VPS from DigitalOcean
 # 2. Run deployment script
@@ -166,6 +186,7 @@ vercel
 ```
 
 ### **Neon:**
+
 ```bash
 # 1. Create database at neon.tech
 # 2. Run PostgreSQL schema

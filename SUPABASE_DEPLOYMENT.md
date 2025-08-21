@@ -3,6 +3,7 @@
 ## 🌟 **What is Supabase?**
 
 Supabase is an open-source alternative to Firebase that provides:
+
 - **Database:** PostgreSQL (serverless)
 - **Authentication:** Built-in user management
 - **API:** Auto-generated REST and GraphQL APIs
@@ -11,11 +12,13 @@ Supabase is an open-source alternative to Firebase that provides:
 - **Hosting:** Serverless functions
 
 ## 💰 **Pricing:**
+
 - **Free Tier:** $0/month (500MB database, 2GB bandwidth)
 - **Pro:** $25/month (8GB database, 250GB bandwidth)
 - **Team:** $599/month (100GB database, 1TB bandwidth)
 
 ## 📋 **Prerequisites:**
+
 1. Supabase account (free)
 2. Domain name (optional)
 3. Your application code
@@ -39,9 +42,11 @@ Supabase is an open-source alternative to Firebase that provides:
 
 1. **Go to SQL Editor in your project**
 2. **Copy and paste the PostgreSQL schema:**
+
    ```sql
    -- Copy content from sql/database_postgresql.sql
    ```
+
 3. **Click "Run" to execute the schema**
 
 ### **Step 3: Configure Environment Variables**
@@ -53,6 +58,7 @@ Supabase is an open-source alternative to Firebase that provides:
    - Service role (secret) key
 
 3. **Create `.env` file:**
+
    ```env
    # Supabase Configuration
    SUPABASE_URL=your_project_url
@@ -89,11 +95,13 @@ Supabase is an open-source alternative to Firebase that provides:
 #### **Option A: Deploy to Vercel (Recommended)**
 
 1. **Install Vercel CLI:**
+
    ```bash
    npm i -g vercel
    ```
 
 2. **Deploy:**
+
    ```bash
    vercel
    ```
@@ -128,6 +136,7 @@ Supabase is an open-source alternative to Firebase that provides:
    - Update DNS records
 
 2. **Update `.env`:**
+
    ```env
    APP_URL=https://yourdomain.com
    ```
@@ -135,6 +144,7 @@ Supabase is an open-source alternative to Firebase that provides:
 ## 🔧 **Configuration Files:**
 
 ### **Update `includes/config.php`:**
+
 ```php
 <?php
 // Load .env
@@ -189,6 +199,7 @@ define('TIMEZONE', $_ENV['TIMEZONE'] ?? 'UTC');
 ## 🔒 **Security Features:**
 
 ### **Row Level Security (RLS):**
+
 ```sql
 -- Enable RLS on users table
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
@@ -203,18 +214,21 @@ CREATE POLICY "Users can update own data" ON users
 ```
 
 ### **API Security:**
+
 - **Anon key:** Public access (limited)
 - **Service key:** Admin access (keep secret)
 
 ## 📊 **Monitoring & Analytics:**
 
 ### **Supabase Dashboard:**
+
 - Database performance
 - API usage
 - Authentication logs
 - Storage usage
 
 ### **Custom Monitoring:**
+
 ```php
 // Add to your application
 function log_activity($user_id, $action, $details = '') {
@@ -247,6 +261,7 @@ function log_activity($user_id, $action, $details = '') {
    - Use connection pooling
 
 ### **Debug Commands:**
+
 ```php
 // Test database connection
 $db_info = DB::getInfo();
@@ -285,6 +300,7 @@ var_dump($response);
 ---
 
 **Your Student Time Management Advisor will be running on Supabase with:**
+
 - 🗄️ **PostgreSQL database**
 - 🔐 **Built-in authentication**
 - 🌐 **Serverless hosting**
