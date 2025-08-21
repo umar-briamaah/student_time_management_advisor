@@ -286,10 +286,21 @@ class EmailSystem {
     }
     
     /**
-     * Get user by ID
+     * Get user by ID with student information
      */
     private function getUserById($user_id) {
-        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE id = ?");
+        $stmt = $this->pdo->prepare("
+            SELECT 
+                u.*,
+                COALESCE(u.student_id, CONCAT('STU', LPAD(u.id, 6, '0'))) as display_student_id,
+                COALESCE(u.program, 'Undecided') as display_program,
+                COALESCE(u.major, 'General Studies') as display_major,
+                COALESCE(u.academic_year, '1st Year') as display_academic_year,
+                COALESCE(u.institution, 'University') as display_institution,
+                COALESCE(u.advisor_name, 'Academic Advisor') as display_advisor_name
+            FROM users u 
+            WHERE u.id = ?
+        ");
         $stmt->execute([$user_id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
@@ -353,6 +364,27 @@ class EmailSystem {
     }
     
     /**
+     * Get program-specific study tips
+     */
+    private function getProgramSpecificTip($program) {
+        $program_tips = [
+            'Computer Science' => 'Practice coding daily, even if just for 30 minutes. Build small projects to reinforce concepts.',
+            'Software Engineering' => 'Focus on both technical skills and soft skills. Communication is key in team projects.',
+            'Engineering' => 'Apply theoretical concepts to real-world problems. Build prototypes and test your ideas.',
+            'Business' => 'Network with professionals in your field. Join business clubs and attend industry events.',
+            'Medicine' => 'Stay organized with your study materials. Use mnemonics and practice with case studies.',
+            'Law' => 'Read extensively and practice legal writing. Join moot court or debate teams.',
+            'Arts' => 'Create a portfolio of your best work. Collaborate with other artists to expand your skills.',
+            'Psychology' => 'Practice active listening and observation. Volunteer for research studies when possible.',
+            'Education' => 'Observe experienced teachers and practice lesson planning. Get involved in tutoring programs.',
+            'Science' => 'Conduct experiments and document everything. Join research groups or science clubs.'
+        ];
+        
+        // Return program-specific tip or default tip
+        return $program_tips[$program] ?? 'Stay curious and ask questions. The best learners are always seeking to understand more.';
+    }
+    
+    /**
      * Log email activity
      */
     private function logEmail($to_email, $subject, $status, $error_message = '') {
@@ -388,8 +420,26 @@ class EmailSystem {
             
             <div style='background: #f8f9fa; padding: 25px; border-radius: 10px; margin-bottom: 25px;'>
                 <h2 style='color: #2c3e50; margin-top: 0;'>Hello {$user['name']}! 👋</h2>
+                
+                <!-- Student Information Card -->
+                <div style='background: white; padding: 20px; border-radius: 8px; border-left: 4px solid #667eea; margin: 20px 0;'>
+                    <h3 style='color: #2c3e50; margin-top: 0; font-size: 18px;'>🎓 Student Profile</h3>
+                    <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;'>
+                        <div>
+                            <p style='margin: 5px 0; font-size: 14px;'><strong style='color: #667eea;'>Student ID:</strong> {$user['display_student_id']}</p>
+                            <p style='margin: 5px 0; font-size: 14px;'><strong style='color: #667eea;'>Program:</strong> {$user['display_program']}</p>
+                            <p style='margin: 5px 0; font-size: 14px;'><strong style='color: #667eea;'>Major:</strong> {$user['display_major']}</p>
+                        </div>
+                        <div>
+                            <p style='margin: 5px 0; font-size: 14px;'><strong style='color: #667eea;'>Year:</strong> {$user['display_academic_year']}</p>
+                            <p style='margin: 5px 0; font-size: 14px;'><strong style='color: #667eea;'>Institution:</strong> {$user['display_institution']}</p>
+                            <p style='margin: 5px 0; font-size: 14px;'><strong style='color: #667eea;'>Advisor:</strong> {$user['display_advisor_name']}</p>
+                        </div>
+                    </div>
+                </div>
+                
                 <p style='font-size: 16px; margin-bottom: 20px;'>
-                    Welcome to Student Time Advisor! We're excited to help you organize your academic life and achieve your goals.
+                    Welcome to Student Time Advisor! We're excited to help you organize your academic life and achieve your goals in your {$user['display_program']} program.
                 </p>
                 
                 <div style='background: white; padding: 20px; border-radius: 8px; border-left: 4px solid #3498db; margin: 20px 0;'>
@@ -429,7 +479,15 @@ Welcome to Student Time Advisor!
 
 Hello {$user['name']}!
 
-Welcome to Student Time Advisor! We're excited to help you organize your academic life and achieve your goals.
+Student Profile:
+- Student ID: {$user['display_student_id']}
+- Program: {$user['display_program']}
+- Major: {$user['display_major']}
+- Academic Year: {$user['display_academic_year']}
+- Institution: {$user['display_institution']}
+- Academic Advisor: {$user['display_advisor_name']}
+
+Welcome to Student Time Advisor! We're excited to help you organize your academic life and achieve your goals in your {$user['display_program']} program.
 
 What you can do now:
 - Create your first task
@@ -791,6 +849,14 @@ Student Time Advisor Team";
                     <li>Take short breaks every 25 minutes</li>
                     <li>Celebrate small wins throughout the day</li>
                 </ul>
+                
+                <!-- Program-Specific Tip -->
+                <div style='background: #fff3cd; padding: 15px; border-radius: 6px; margin-top: 15px; border-left: 4px solid #ffc107;'>
+                    <h4 style='color: #856404; margin-top: 0; font-size: 16px;'>💡 {$user['display_program']} Tip</h4>
+                    <p style='color: #856404; margin: 0; font-size: 14px;'>
+                        " . $this->getProgramSpecificTip($user['display_program']) . "
+                    </p>
+                </div>
             </div>
             
             <div style='text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 14px;'>
@@ -818,6 +884,9 @@ Quick Tips for Today:
 - Set your top 3 priorities  
 - Take short breaks every 25 minutes
 - Celebrate small wins throughout the day
+
+{$user['display_program']} Tip:
+" . $this->getProgramSpecificTip($user['display_program']) . "
 
 Start your day at: " . APP_URL . "/dashboard.php
 

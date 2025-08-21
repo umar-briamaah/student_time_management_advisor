@@ -132,11 +132,23 @@ include __DIR__ . '/../includes/layout/header.php';
         <div class="grid md:grid-cols-2 gap-6">
             <!-- Current User Info -->
             <div class="bg-white rounded-xl shadow-lg p-6">
-                <h3 class="text-xl font-semibold text-gray-800 mb-4">👤 Current User</h3>
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">🎓 Student Profile</h3>
                 <div class="space-y-2">
                     <p><strong>Name:</strong> <?php echo htmlspecialchars($user['name']); ?></p>
                     <p><strong>Email:</strong> <?php echo htmlspecialchars($user['email']); ?></p>
-                    <p><strong>User ID:</strong> <?php echo $user['id']; ?></p>
+                    <p><strong>Student ID:</strong> 
+                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-mono">
+                            <?php echo htmlspecialchars($user['student_id'] ?? 'STU' . str_pad($user['id'], 6, '0', STR_PAD_LEFT)); ?>
+                        </span>
+                    </p>
+                    <p><strong>Program:</strong> <?php echo htmlspecialchars($user['program'] ?? 'Undecided'); ?></p>
+                    <p><strong>Major:</strong> <?php echo htmlspecialchars($user['major'] ?? 'General Studies'); ?></p>
+                    <p><strong>Academic Year:</strong> 
+                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">
+                            <?php echo htmlspecialchars($user['academic_year'] ?? '1st Year'); ?>
+                        </span>
+                    </p>
+                    <p><strong>Institution:</strong> <?php echo htmlspecialchars($user['institution'] ?? 'University'); ?></p>
                 </div>
             </div>
 
