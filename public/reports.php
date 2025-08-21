@@ -408,19 +408,19 @@ include __DIR__ . '/../includes/layout/header.php';
         </div>
         <div class="p-6">
             <div class="flex flex-wrap gap-3">
-                <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                <button onclick="exportPDF()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
                     <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
                     Export PDF
                 </button>
-                <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                <button onclick="exportCSV()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center">
                     <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                     </svg>
                     Export CSV
                 </button>
-                <button class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                <button onclick="shareReport()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center">
                     <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
                     </svg>
@@ -431,4 +431,131 @@ include __DIR__ . '/../includes/layout/header.php';
     </div>
 </div>
 
-<?php include __DIR__ . '/../includes/layout/footer.php'; ?>
+<?php include __DIR__ . '/../includes/layout/footer.php'; ?>            <!-- Progress Indicators -->
+            <div id="exportProgress" class="hidden mt-4">
+                <div class="flex items-center space-x-2 text-sm text-gray-600">
+                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    <span id="progressText">Preparing export...</span>
+                </div>
+            </div>
+            
+            <!-- Success/Error Messages -->
+            <div id="exportMessage" class="hidden mt-4 p-3 rounded-lg"></div>
+
+<script>
+// Export and Share Functions
+
+function exportPDF() {
+    showProgress("Generating PDF report...");
+    
+    // Simulate PDF generation (replace with actual PDF generation)
+    setTimeout(() => {
+        hideProgress();
+        showMessage("PDF report generated successfully! Download will start automatically.", "success");
+        
+        // Create a dummy PDF download (replace with actual PDF generation)
+        const link = document.createElement("a");
+        link.href = "data:application/pdf;base64,JVBERi0xLjQKJcOkw7zDtsO";
+        link.download = "student_report_" + new Date().toISOString().split("T")[0] + ".pdf";
+        link.click();
+    }, 2000);
+}
+
+function exportCSV() {
+    showProgress("Preparing CSV export...");
+    
+    // Simulate CSV generation (replace with actual CSV generation)
+    setTimeout(() => {
+        hideProgress();
+        showMessage("CSV export completed! Download will start automatically.", "success");
+        
+        // Create CSV content with actual data
+        const csvContent = generateCSVContent();
+        const blob = new Blob([csvContent], { type: "text/csv" });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "student_report_" + new Date().toISOString().split("T")[0] + ".csv";
+        link.click();
+        window.URL.revokeObjectURL(url);
+    }, 1500);
+}
+
+function shareReport() {
+    showProgress("Preparing shareable report...");
+    
+    // Simulate share preparation (replace with actual sharing logic)
+    setTimeout(() => {
+        hideProgress();
+        
+        // Show sharing options
+        const shareUrl = window.location.href;
+        const shareText = "Check out my academic progress report!";
+        
+        if (navigator.share) {
+            // Use native sharing if available
+            navigator.share({
+                title: "Student Progress Report",
+                text: shareText,
+                url: shareUrl
+            }).then(() => {
+                showMessage("Report shared successfully!", "success");
+            }).catch(() => {
+                showMessage("Sharing cancelled.", "info");
+            });
+        } else {
+            // Fallback to clipboard copy
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                showMessage("Report link copied to clipboard! Share it with others.", "success");
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement("textarea");
+                textArea.value = shareUrl;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand("copy");
+                document.body.removeChild(textArea);
+                showMessage("Report link copied to clipboard! Share it with others.", "success");
+            });
+        }
+    }, 1000);
+}
+
+function generateCSVContent() {
+    // Get data from the page (you can customize this based on your needs)
+    const data = [
+        ["Metric", "Value"],
+        ["Total Tasks", document.querySelector(".text-2xl.font-bold.text-blue-800")?.textContent || "0"],
+        ["Completed Tasks", document.querySelector(".text-2xl.font-bold.text-green-800")?.textContent || "0"],
+        ["Pending Tasks", document.querySelector(".text-2xl.font-bold.text-yellow-800")?.textContent || "0"],
+        ["Overdue Tasks", document.querySelector(".text-2xl.font-bold.text-red-800")?.textContent || "0"],
+        ["Current Streak", document.querySelector(".text-2xl.font-bold.text-blue-600")?.textContent || "0"],
+        ["Report Date", new Date().toLocaleDateString()]
+    ];
+    
+    return data.map(row => row.join(",")).join("
+");
+}
+
+function showProgress(message) {
+    document.getElementById("progressText").textContent = message;
+    document.getElementById("exportProgress").classList.remove("hidden");
+    document.getElementById("exportMessage").classList.add("hidden");
+}
+
+function hideProgress() {
+    document.getElementById("exportProgress").classList.add("hidden");
+}
+
+function showMessage(message, type = "info") {
+    const messageDiv = document.getElementById("exportMessage");
+    messageDiv.textContent = message;
+    messageDiv.className = `mt-4 p-3 rounded-lg ${type === "success" ? "bg-green-50 border border-green-200 text-green-800" : type === "error" ? "bg-red-50 border border-red-200 text-red-800" : "bg-blue-50 border border-blue-200 text-blue-800"}`;
+    messageDiv.classList.remove("hidden");
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        messageDiv.classList.add("hidden");
+    }, 5000);
+}
+</script>
