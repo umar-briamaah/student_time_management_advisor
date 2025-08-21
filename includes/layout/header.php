@@ -245,19 +245,47 @@ require_once __DIR__ . '/../functions.php';
       <!-- Custom CSS for navigation -->
       <style>
         .nav-link {
-          @apply flex items-center px-4 py-3 rounded-xl text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 transition-all duration-300 focus-ring border border-transparent hover:border-gray-200;
+          display: flex;
+          align-items: center;
+          padding: 0.75rem 1rem;
+          border-radius: 0.75rem;
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: #374151;
+          transition: all 300ms;
+          border: 1px solid transparent;
+        }
+        
+        .nav-link:hover {
+          color: #111827;
+          background: linear-gradient(to right, #f9fafb, #dbeafe);
+          border-color: #e5e7eb;
+          transform: translateY(-1px);
         }
         
         .mobile-nav-link {
-          @apply flex items-center px-4 py-3 rounded-xl text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 transition-all duration-300 border border-transparent hover:border-gray-200;
+          display: flex;
+          align-items: center;
+          padding: 0.75rem 1rem;
+          border-radius: 0.75rem;
+          font-size: 1rem;
+          font-weight: 500;
+          color: #374151;
+          transition: all 300ms;
+          border: 1px solid transparent;
+        }
+        
+        .mobile-nav-link:hover {
+          color: #111827;
+          background: linear-gradient(to right, #f9fafb, #dbeafe);
+          border-color: #e5e7eb;
+          transform: translateY(-1px);
         }
         
         .nav-link.active, .mobile-nav-link.active {
-          @apply bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 border-blue-200;
-        }
-        
-        .nav-link:hover, .mobile-nav-link:hover {
-          transform: translateY(-1px);
+          background: linear-gradient(to right, #dbeafe, #e9d5ff);
+          color: #1d4ed8;
+          border-color: #bfdbfe;
         }
         
         /* Enhanced focus styles */
