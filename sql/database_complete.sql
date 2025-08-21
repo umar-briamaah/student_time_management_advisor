@@ -422,38 +422,7 @@ CREATE INDEX idx_categories_user_default ON categories(user_id, is_default);
 -- SAMPLE DATA FOR TESTING
 -- =====================================================
 
--- Insert sample user (password: password123)
-INSERT INTO users (name, email, password_hash, preferred_study_hour) VALUES
-('Demo Student', 'demo@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 18);
-
--- Insert sample tasks
-INSERT INTO tasks (user_id, title, description, category, priority, due_at, estimated_minutes) VALUES
-(1, 'Complete Math Assignment 3', 'Finish the calculus problems from Chapter 5', 'Assignment', 'High', DATE_ADD(NOW(), INTERVAL 2 DAY), 120),
-(1, 'Study for Physics Exam', 'Review chapters 8-12, practice problems', 'Exam', 'Urgent', DATE_ADD(NOW(), INTERVAL 5 DAY), 180),
-(1, 'Lab Report - Chemistry', 'Write up the titration experiment results', 'Lab', 'Medium', DATE_ADD(NOW(), INTERVAL 1 DAY), 90),
-(1, 'Read History Chapter 7', 'Read about the Industrial Revolution', 'Lecture', 'Low', DATE_ADD(NOW(), INTERVAL 3 DAY), 60),
-(1, 'Group Project Meeting', 'Meet with team to discuss final presentation', 'Other', 'Medium', DATE_ADD(NOW(), INTERVAL 4 DAY), 60);
-
--- Insert sample completed tasks
-INSERT INTO tasks (user_id, title, description, category, priority, due_at, estimated_minutes, completed, completed_at, actual_minutes) VALUES
-(1, 'Complete Math Quiz', 'Online quiz on derivatives', 'Exam', 'Medium', DATE_SUB(NOW(), INTERVAL 1 DAY), 45, 1, DATE_SUB(NOW(), INTERVAL 1 DAY), 50),
-(1, 'Write Essay Outline', 'Create outline for research paper', 'Assignment', 'High', DATE_SUB(NOW(), INTERVAL 2 DAY), 60, 1, DATE_SUB(NOW(), INTERVAL 2 DAY), 65);
-
--- Insert sample study sessions
-INSERT INTO study_sessions (user_id, task_id, start_time, end_time, duration_minutes, notes) VALUES
-(1, 1, DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 2 DAY - INTERVAL 2 HOUR), 120, 'Focused study session'),
-(1, 2, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY - INTERVAL 1 HOUR), 60, 'Quick review');
-
--- Insert sample reminders
-INSERT INTO reminders (task_id, user_id, send_at, reminder_type) VALUES
-(1, 1, DATE_ADD(NOW(), INTERVAL 1 DAY), 'email'),
-(1, 1, DATE_ADD(NOW(), INTERVAL 36 HOUR), 'email'),
-(2, 1, DATE_ADD(NOW(), INTERVAL 3 DAY), 'email');
-
--- Insert sample study goals
-INSERT INTO study_goals (user_id, title, description, target_hours_per_week, deadline) VALUES
-(1, 'Complete All Assignments', 'Finish all pending assignments before finals', 15.0, DATE_ADD(NOW(), INTERVAL 2 WEEK)),
-(1, 'Study for Finals', 'Prepare for end-of-semester exams', 20.0, DATE_ADD(NOW(), INTERVAL 3 WEEK));
+-- Sample data removed - users will create their own data when they register
 
 -- =====================================================
 -- FINAL NOTES

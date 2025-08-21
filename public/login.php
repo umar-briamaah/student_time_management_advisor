@@ -128,15 +128,7 @@ include __DIR__ . '/../includes/layout/header.php';
         </div>
     </form>
     
-    <!-- Demo Account Info -->
-    <div class="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
-        <h3 class="text-sm font-medium text-blue-800 mb-2">Demo Account</h3>
-        <p class="text-xs text-blue-700 mb-2">You can test the system with these credentials:</p>
-        <div class="text-xs text-blue-600 space-y-1">
-            <div><strong>Email:</strong> demo@example.com</div>
-            <div><strong>Password:</strong> password123</div>
-        </div>
-    </div>
+
 </div>
 
 <script>

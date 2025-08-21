@@ -187,7 +187,7 @@ class PasswordValidator {
      */
     private static function getCommonPasswords() {
         return [
-            'password', '123456', '123456789', 'qwerty', 'abc123', 'password123',
+            'password', '123456', '123456789', 'qwerty', 'abc123',
             'admin', 'letmein', 'welcome', 'monkey', 'dragon', 'master',
             'hello', 'freedom', 'whatever', 'qazwsx', 'trustno1', 'jordan',
             'joshua', 'maggie', 'enter', 'shadow', 'baseball', 'football',
