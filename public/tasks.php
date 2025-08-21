@@ -672,25 +672,29 @@ window.onclick = function(event) {
     }
 }
 
-// Add form validation
+// Add form validation and dynamic task creation
 document.addEventListener('DOMContentLoaded', function() {
     const createForm = document.querySelector('form[name="createTaskForm"]');
     const editForm = document.querySelector('form[name="editTaskForm"]');
     
     if (createForm) {
         createForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent default form submission
+            
             const dueAt = this.querySelector('input[name="due_at"]').value;
             const title = this.querySelector('input[name="title"]').value.trim();
+            const category = this.querySelector('select[name="category"]').value;
+            const description = this.querySelector('textarea[name="description"]').value.trim();
+            const estimatedMinutes = this.querySelector('input[name="estimated_minutes"]').value;
+            const csrf = this.querySelector('input[name="csrf"]').value;
             
             if (!title) {
-                e.preventDefault();
-                alert('Please enter a task title.');
+                showNotification('Please enter a task title.', 'error');
                 return;
             }
             
             if (!dueAt) {
-                e.preventDefault();
-                alert('Please select a due date and time.');
+                showNotification('Please select a due date and time.', 'error');
                 return;
             }
             
@@ -698,10 +702,22 @@ document.addEventListener('DOMContentLoaded', function() {
             const now = new Date();
             
             if (selectedDate <= now) {
-                e.preventDefault();
-                alert('Due date and time must be in the future.');
+                showNotification('Due date and time must be in the future.', 'error');
                 return;
             }
+            
+            // Create task data
+            const taskData = {
+                title: title,
+                category: category,
+                description: description,
+                due_at: dueAt,
+                estimated_minutes: estimatedMinutes,
+                csrf: csrf
+            };
+            
+            // Submit task creation
+            createTask(taskData);
         });
     }
     
@@ -712,13 +728,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (!title) {
                 e.preventDefault();
-                alert('Please enter a task title.');
+                showNotification('Please enter a task title.', 'error');
                 return;
             }
             
             if (!dueAt) {
                 e.preventDefault();
-                alert('Please select a due date and time.');
+                showNotification('Please select a due date and time.', 'error');
                 return;
             }
             
@@ -727,12 +743,94 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (selectedDate <= now) {
                 e.preventDefault();
-                alert('Due date and time must be in the future.');
+                showNotification('Due date and time must be in the future.', 'error');
                 return;
             }
         });
     }
 });
+
+// Function to create task via AJAX
+async function createTask(taskData) {
+    try {
+        const formData = new FormData();
+        formData.append('create', '1');
+        formData.append('csrf', taskData.csrf);
+        formData.append('title', taskData.title);
+        formData.append('category', taskData.category);
+        formData.append('description', taskData.description);
+        formData.append('due_at', taskData.due_at);
+        formData.append('estimated_minutes', taskData.estimated_minutes);
+        
+        const response = await fetch(window.location.href, {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (response.ok) {
+            const result = await response.text();
+            
+            // Check if task was created successfully
+            if (result.includes('Task created successfully')) {
+                showNotification('Task created successfully! 🎉', 'success');
+                
+                // Close the modal
+                document.getElementById('createTaskModal').classList.add('hidden');
+                
+                // Reset the form
+                document.querySelector('form[name="createTaskForm"]').reset();
+                
+                // Reload the page to show the new task
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                showNotification('Failed to create task. Please try again.', 'error');
+            }
+        } else {
+            showNotification('Network error. Please try again.', 'error');
+        }
+    } catch (error) {
+        console.error('Error creating task:', error);
+        showNotification('An error occurred. Please try again.', 'error');
+    }
+}
+
+// Function to show notifications
+function showNotification(message, type = 'info') {
+    // Remove existing notifications
+    const existingNotifications = document.querySelectorAll('.notification');
+    existingNotifications.forEach(notification => notification.remove());
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 max-w-sm ${
+        type === 'success' ? 'bg-green-500 text-white' :
+        type === 'error' ? 'bg-red-500 text-white' :
+        'bg-blue-500 text-white'
+    }`;
+    
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <span class="mr-2">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        notification.style.transition = 'opacity 0.5s ease-out';
+        notification.style.opacity = '0';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 500);
+    }, 5000);
+}
 
 // Auto-close success messages after 5 seconds
 setTimeout(function() {
