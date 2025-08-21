@@ -160,7 +160,10 @@ include __DIR__ . '/../includes/layout/header.php';
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Due Date & Time *</label>
                     <input type="datetime-local" name="due_at" required 
+                           value="<?php echo date('Y-m-d\TH:i', strtotime('+1 day')); ?>"
+                           min="<?php echo date('Y-m-d\TH:i'); ?>"
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <p class="text-xs text-gray-500 mt-1">Select a future date and time</p>
                 </div>
                 
                 <div>
