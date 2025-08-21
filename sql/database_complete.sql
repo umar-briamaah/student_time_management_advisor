@@ -161,6 +161,36 @@ CREATE TABLE study_goals (
   INDEX idx_deadline (deadline)
 ) ENGINE=InnoDB;
 
+-- Email logs table - Track all email activities
+CREATE TABLE email_logs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  to_email VARCHAR(150) NOT NULL,
+  subject VARCHAR(255) NOT NULL,
+  status ENUM('sent','failed','pending') DEFAULT 'pending',
+  error_message TEXT,
+  sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  INDEX idx_email_status (status),
+  INDEX idx_sent_at (sent_at),
+  INDEX idx_to_email (to_email)
+) ENGINE=InnoDB;
+
+-- Email configuration table - Store email settings
+CREATE TABLE email_config (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  smtp_host VARCHAR(100) NOT NULL DEFAULT 'smtp.gmail.com',
+  smtp_port INT NOT NULL DEFAULT 587,
+  smtp_username VARCHAR(150) NOT NULL,
+  smtp_password VARCHAR(255) NOT NULL,
+  smtp_encryption ENUM('tls','ssl') DEFAULT 'tls',
+  from_email VARCHAR(150) NOT NULL,
+  from_name VARCHAR(100) NOT NULL,
+  reply_to VARCHAR(150),
+  is_active TINYINT(1) DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
 -- =====================================================
 -- SAMPLE DATA
 -- =====================================================

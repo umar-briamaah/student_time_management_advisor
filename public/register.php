@@ -34,7 +34,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $hash = password_hash($password, PASSWORD_DEFAULT);
             $stmt = $pdo->prepare("INSERT INTO users (name, email, password_hash) VALUES (?,?,?)");
             $stmt->execute([$name, $email, $hash]);
-            $_SESSION['user'] = ['id' => $pdo->lastInsertId(), 'name'=>$name, 'email'=>$email];
+            
+            $user_id = $pdo->lastInsertId();
+            $_SESSION['user'] = ['id' => $user_id, 'name'=>$name, 'email'=>$email];
+            
+            // Send welcome email
+            try {
+                require_once __DIR__ . '/../includes/mailer.php';
+                $emailSystem = new EmailSystem();
+                $emailSystem->sendWelcomeEmail($user_id);
+            } catch (Exception $e) {
+                // Log error but don't prevent registration
+                error_log('Failed to send welcome email: ' . $e->getMessage());
+            }
+            
             header('Location: ' . APP_URL . '/dashboard.php');
             exit;
         }
