@@ -55,23 +55,33 @@ require_once __DIR__ . '/../functions.php';
     </style>
   </head>
   <body class="bg-gray-50 text-gray-900 antialiased">
+    <!-- Top Bar -->
+    <div class="bg-gradient-to-r from-green-700 to-green-600 h-2"></div>
+    
     <!-- Navigation -->
-    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-lg">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
+        <div class="flex items-center justify-between h-20">
           <!-- Logo/Brand -->
           <div class="flex items-center">
-            <a href="<?php echo APP_URL; ?>/dashboard.php" class="flex items-center space-x-2 focus-ring rounded-lg p-2">
-              <div class="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span class="text-white font-bold text-lg">S</span>
+            <a href="<?php echo APP_URL; ?>/dashboard.php" class="flex items-center space-x-3 focus-ring rounded-lg p-2 hover:bg-gray-50 transition-colors">
+              <div class="w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                <span class="text-white font-bold text-xl">S</span>
               </div>
-              <span class="font-bold text-xl text-gray-900 hidden sm:block">Student Time Advisor</span>
-              <span class="font-bold text-xl text-gray-900 sm:hidden">STA</span>
+              <div class="hidden sm:block">
+                <div class="flex flex-col">
+                  <span class="font-bold text-2xl text-gray-900 leading-tight">Student Time</span>
+                  <span class="font-bold text-2xl text-gray-900 leading-tight">Advisor</span>
+                </div>
+              </div>
+              <div class="sm:hidden">
+                <span class="font-bold text-xl text-gray-900">STA</span>
+              </div>
             </a>
           </div>
 
           <!-- Desktop Navigation -->
-          <div class="hidden md:flex items-center space-x-1">
+          <div class="hidden md:flex items-center space-x-2">
             <a href="<?php echo APP_URL; ?>/dashboard.php" class="nav-link">
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
@@ -122,27 +132,47 @@ require_once __DIR__ . '/../functions.php';
             <?php if(isset($_SESSION['user'])): ?>
               <!-- User dropdown -->
               <div class="relative" id="userDropdown">
-                <button onclick="toggleUserDropdown()" class="flex items-center space-x-2 text-sm rounded-full focus-ring p-2 hover:bg-gray-100 transition-colors">
-                  <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                    <span class="text-white font-medium text-sm"><?php echo strtoupper(substr($user['name'] ?? 'U', 0, 1)); ?></span>
+                <button onclick="toggleUserDropdown()" class="flex items-center space-x-3 text-sm rounded-xl focus-ring p-3 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 transition-all duration-300 border border-transparent hover:border-gray-200">
+                  <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center shadow-md">
+                    <span class="text-white font-semibold text-sm"><?php echo strtoupper(substr($user['name'] ?? 'U', 0, 1)); ?></span>
                   </div>
-                  <span class="hidden sm:block text-gray-700"><?php echo h($_SESSION['user']['name'] ?? 'User'); ?></span>
-                  <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <span class="hidden sm:block text-gray-700 font-medium"><?php echo h($_SESSION['user']['name'] ?? 'User'); ?></span>
+                  <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                   </svg>
                 </button>
                 
                 <!-- Dropdown menu -->
-                <div id="userDropdownMenu" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden">
-                  <a href="<?php echo APP_URL; ?>/dashboard.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Dashboard</a>
-                  <a href="<?php echo APP_URL; ?>/tasks.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Tasks</a>
-                  <a href="<?php echo APP_URL; ?>/motivation.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Badges</a>
-                  <div class="border-t border-gray-100"></div>
-                  <a href="<?php echo APP_URL; ?>/logout.php" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50">Sign Out</a>
+                <div id="userDropdownMenu" class="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-xl py-2 z-50 hidden border border-gray-100">
+                  <a href="<?php echo APP_URL; ?>/dashboard.php" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 transition-all duration-200">
+                    <svg class="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                    </svg>
+                    Dashboard
+                  </a>
+                  <a href="<?php echo APP_URL; ?>/tasks.php" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 transition-all duration-200">
+                    <svg class="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    My Tasks
+                  </a>
+                  <a href="<?php echo APP_URL; ?>/motivation.php" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 transition-all duration-200">
+                    <svg class="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                    </svg>
+                    My Badges
+                  </a>
+                  <div class="border-t border-gray-100 my-2"></div>
+                  <a href="<?php echo APP_URL; ?>/logout.php" class="flex items-center px-4 py-3 text-sm text-red-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 transition-all duration-200">
+                    <svg class="w-4 h-4 mr-3 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                    </svg>
+                    Sign Out
+                  </a>
                 </div>
               </div>
             <?php else: ?>
-              <a href="<?php echo APP_URL; ?>/login.php" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium focus-ring">
+              <a href="<?php echo APP_URL; ?>/login.php" class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-300 font-semibold focus-ring shadow-lg hover:shadow-xl transform hover:-translate-y-1">
                 Sign In
               </a>
             <?php endif; ?>
@@ -150,7 +180,7 @@ require_once __DIR__ . '/../functions.php';
 
           <!-- Mobile menu button -->
           <div class="md:hidden">
-            <button onclick="toggleMobileMenu()" class="text-gray-500 hover:text-gray-700 focus-ring p-2">
+            <button onclick="toggleMobileMenu()" class="text-gray-600 hover:text-gray-800 focus-ring p-3 rounded-xl hover:bg-gray-100 transition-all duration-300">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
               </svg>
@@ -160,8 +190,8 @@ require_once __DIR__ . '/../functions.php';
       </div>
 
       <!-- Mobile Navigation -->
-      <div id="mobileMenu" class="md:hidden border-t border-gray-200 bg-white hidden">
-        <div class="px-2 pt-2 pb-3 space-y-1">
+      <div id="mobileMenu" class="md:hidden border-t border-gray-200 bg-white hidden shadow-lg">
+        <div class="px-4 pt-4 pb-6 space-y-2">
           <a href="<?php echo APP_URL; ?>/dashboard.php" class="mobile-nav-link">
             <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
@@ -225,15 +255,33 @@ require_once __DIR__ . '/../functions.php';
       <!-- Custom CSS for navigation -->
       <style>
         .nav-link {
-          @apply flex items-center px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors focus-ring;
+          @apply flex items-center px-4 py-3 rounded-xl text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 transition-all duration-300 focus-ring border border-transparent hover:border-gray-200;
         }
         
         .mobile-nav-link {
-          @apply flex items-center px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors;
+          @apply flex items-center px-4 py-3 rounded-xl text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 transition-all duration-300 border border-transparent hover:border-gray-200;
         }
         
         .nav-link.active, .mobile-nav-link.active {
-          @apply bg-blue-50 text-blue-700;
+          @apply bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 border-blue-200;
+        }
+        
+        .nav-link:hover, .mobile-nav-link:hover {
+          transform: translateY(-1px);
+        }
+        
+        /* Enhanced focus styles */
+        .focus-ring:focus {
+          outline: 2px solid #3b82f6;
+          outline-offset: 2px;
+          box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Smooth transitions for all interactive elements */
+        * {
+          transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+          transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+          transition-duration: 150ms;
         }
       </style>
 
