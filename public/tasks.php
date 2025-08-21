@@ -71,14 +71,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create'])) {
         $errors[] = 'Invalid CSRF token.';
     } else {
         $task_data = [
-            'title' => $_POST['title'] ?? '',
+            'title' => trim($_POST['title'] ?? ''),
             'category' => $_POST['category'] ?? 'Other',
             'due_at' => $_POST['due_at'] ?? '',
-            'description' => $_POST['description'] ?? '',
-            'estimated_minutes' => $_POST['estimated_minutes'] ?? 60
+            'description' => trim($_POST['description'] ?? ''),
+            'estimated_minutes' => (int)($_POST['estimated_minutes'] ?? 60)
         ];
         
-        $errors = validate_task_data($task_data);
+        // Validate datetime format
+        if (!empty($task_data['due_at'])) {
+            $due_datetime = DateTime::createFromFormat('Y-m-d\TH:i', $task_data['due_at']);
+            if ($due_datetime === false) {
+                $errors[] = 'Invalid date and time format. Please select a valid date and time.';
+            } else {
+                // Ensure the datetime is in the future
+                if ($due_datetime <= new DateTime()) {
+                    $errors[] = 'Due date and time must be in the future.';
+                } else {
+                    // Format the datetime properly for database
+                    $task_data['due_at'] = $due_datetime->format('Y-m-d H:i:s');
+                }
+            }
+        } else {
+            $errors[] = 'Due date and time is required.';
+        }
+        
+        // Additional validation
+        if (empty($task_data['title'])) {
+            $errors[] = 'Task title is required.';
+        }
         
         if (empty($errors)) {
             // Debug: Log the user ID being used
@@ -126,14 +147,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_task'])) {
     } else {
         $task_data = [
             'id' => (int)($_POST['task_id'] ?? 0),
-            'title' => $_POST['title'] ?? '',
+            'title' => trim($_POST['title'] ?? ''),
             'category' => $_POST['category'] ?? 'Other',
             'due_at' => $_POST['due_at'] ?? '',
-            'description' => $_POST['description'] ?? '',
-            'estimated_minutes' => $_POST['estimated_minutes'] ?? 60
+            'description' => trim($_POST['description'] ?? ''),
+            'estimated_minutes' => (int)($_POST['estimated_minutes'] ?? 60)
         ];
         
-        $errors = validate_task_data($task_data);
+        // Validate datetime format for editing
+        if (!empty($task_data['due_at'])) {
+            $due_datetime = DateTime::createFromFormat('Y-m-d\TH:i', $task_data['due_at']);
+            if ($due_datetime === false) {
+                $errors[] = 'Invalid date and time format. Please select a valid date and time.';
+            } else {
+                // Ensure the datetime is in the future
+                if ($due_datetime <= new DateTime()) {
+                    $errors[] = 'Due date and time must be in the future.';
+                } else {
+                    // Format the datetime properly for database
+                    $task_data['due_at'] = $due_datetime->format('Y-m-d H:i:s');
+                }
+            }
+        } else {
+            $errors[] = 'Due date and time is required.';
+        }
+        
+        // Additional validation
+        if (empty($task_data['title'])) {
+            $errors[] = 'Task title is required.';
+        }
         
         if (empty($errors) && $task_data['id'] > 0) {
             $stmt = $pdo->prepare("UPDATE tasks SET title=?, description=?, category=?, due_at=?, estimated_minutes=?, updated_at=NOW() WHERE id=? AND user_id=?");
@@ -255,6 +297,8 @@ include __DIR__ . '/../includes/layout/header.php';
                     $stmt->execute([$user['id']]);
                     echo $stmt->fetch()['count'];
                 ?></p>
+                <p class="text-blue-700 text-sm">Current time: <?php echo date('Y-m-d H:i:s'); ?></p>
+                <p class="text-blue-700 text-sm">Default due time: <?php echo date('Y-m-d\TH:i', strtotime('+1 day')); ?></p>
             </div>
         </div>
     </div>
@@ -266,7 +310,10 @@ include __DIR__ . '/../includes/layout/header.php';
             <input type="hidden" name="csrf" value="<?php echo csrf_token(); ?>">
             <input type="hidden" name="create" value="1">
             <input type="text" name="title" placeholder="Test Task Title" required class="w-full border rounded px-2 py-1">
-            <input type="datetime-local" name="due_at" required class="w-full border rounded px-2 py-1">
+            <input type="datetime-local" name="due_at" required 
+                   value="<?php echo date('Y-m-d\TH:i', strtotime('+1 day')); ?>"
+                   min="<?php echo date('Y-m-d\TH:i'); ?>"
+                   class="w-full border rounded px-2 py-1">
             <button type="submit" class="bg-yellow-600 text-white px-3 py-1 rounded text-sm">
                 Create Test Task
             </button>
@@ -487,7 +534,7 @@ include __DIR__ . '/../includes/layout/header.php';
                 </button>
             </div>
             
-            <form method="post" class="space-y-4">
+            <form method="post" name="createTaskForm" class="space-y-4">
                 <input type="hidden" name="csrf" value="<?php echo csrf_token(); ?>">
                 
                 <div>
@@ -518,7 +565,10 @@ include __DIR__ . '/../includes/layout/header.php';
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Due Date & Time *</label>
                     <input type="datetime-local" name="due_at" required 
+                           value="<?php echo date('Y-m-d\TH:i', strtotime('+1 day')); ?>"
+                           min="<?php echo date('Y-m-d\TH:i'); ?>"
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <p class="text-xs text-gray-500 mt-1">Select a future date and time</p>
                 </div>
                 
                 <div>
@@ -556,7 +606,7 @@ include __DIR__ . '/../includes/layout/header.php';
                 </button>
             </div>
             
-            <form method="post" class="space-y-4">
+            <form method="post" name="editTaskForm" class="space-y-4">
                 <input type="hidden" name="csrf" value="<?php echo csrf_token(); ?>">
                 <input type="hidden" name="task_id" id="edit_task_id">
                 
@@ -586,7 +636,9 @@ include __DIR__ . '/../includes/layout/header.php';
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Due Date & Time *</label>
                     <input type="datetime-local" name="due_at" id="edit_due_at" required 
+                           min="<?php echo date('Y-m-d\TH:i'); ?>"
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <p class="text-xs text-gray-500 mt-1">Select a future date and time</p>
                 </div>
                 
                 <div>
@@ -616,7 +668,18 @@ function editTask(task) {
     document.getElementById('edit_title').value = task.title;
     document.getElementById('edit_category').value = task.category;
     document.getElementById('edit_description').value = task.description;
-    document.getElementById('edit_due_at').value = task.due_at.replace(' ', 'T');
+    
+    // Format the datetime properly for datetime-local input
+    if (task.due_at) {
+        const dueDate = new Date(task.due_at);
+        const year = dueDate.getFullYear();
+        const month = String(dueDate.getMonth() + 1).padStart(2, '0');
+        const day = String(dueDate.getDate()).padStart(2, '0');
+        const hours = String(dueDate.getHours()).padStart(2, '0');
+        const minutes = String(dueDate.getMinutes()).padStart(2, '0');
+        document.getElementById('edit_due_at').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+    
     document.getElementById('edit_estimated_minutes').value = task.estimated_minutes;
     
     document.getElementById('editTaskModal').classList.remove('hidden');
@@ -634,6 +697,80 @@ window.onclick = function(event) {
         editModal.classList.add('hidden');
     }
 }
+
+// Add form validation
+document.addEventListener('DOMContentLoaded', function() {
+    const createForm = document.querySelector('form[name="createTaskForm"]');
+    const editForm = document.querySelector('form[name="editTaskForm"]');
+    
+    if (createForm) {
+        createForm.addEventListener('submit', function(e) {
+            const dueAt = this.querySelector('input[name="due_at"]').value;
+            const title = this.querySelector('input[name="title"]').value.trim();
+            
+            if (!title) {
+                e.preventDefault();
+                alert('Please enter a task title.');
+                return;
+            }
+            
+            if (!dueAt) {
+                e.preventDefault();
+                alert('Please select a due date and time.');
+                return;
+            }
+            
+            const selectedDate = new Date(dueAt);
+            const now = new Date();
+            
+            if (selectedDate <= now) {
+                e.preventDefault();
+                alert('Due date and time must be in the future.');
+                return;
+            }
+        });
+    }
+    
+    if (editForm) {
+        editForm.addEventListener('submit', function(e) {
+            const dueAt = this.querySelector('input[name="due_at"]').value;
+            const title = this.querySelector('input[name="title"]').value.trim();
+            
+            if (!title) {
+                e.preventDefault();
+                alert('Please enter a task title.');
+                return;
+            }
+            
+            if (!dueAt) {
+                e.preventDefault();
+                alert('Please select a due date and time.');
+                return;
+            }
+            
+            const selectedDate = new Date(dueAt);
+            const now = new Date();
+            
+            if (selectedDate <= now) {
+                e.preventDefault();
+                alert('Due date and time must be in the future.');
+                return;
+            }
+        });
+    }
+});
+
+// Auto-close success messages after 5 seconds
+setTimeout(function() {
+    const successMessages = document.querySelectorAll('.bg-green-50');
+    successMessages.forEach(function(msg) {
+        msg.style.transition = 'opacity 0.5s ease-out';
+        msg.style.opacity = '0';
+        setTimeout(function() {
+            msg.remove();
+        }, 500);
+    });
+}, 5000);
 </script>
 
 <?php include __DIR__ . '/../includes/layout/footer.php'; ?>
