@@ -62,6 +62,81 @@ include __DIR__ . '/../includes/layout/header.php';
         </div>
     </div>
 
+    <!-- Motivation of the Day -->
+    <div class="bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 rounded-xl p-6 text-white relative overflow-hidden shadow-xl">
+        <!-- Background decorative elements -->
+        <div class="absolute inset-0">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-white bg-opacity-10 rounded-full -mr-12 -mt-12"></div>
+            <div class="absolute bottom-0 left-0 w-20 h-20 bg-white bg-opacity-10 rounded-full -ml-10 -mb-10"></div>
+            <div class="absolute top-1/2 right-1/3 w-16 h-16 bg-white bg-opacity-5 rounded-full"></div>
+        </div>
+        
+        <div class="relative z-10">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-bold">Motivation of the Day</h2>
+                        <p class="text-orange-100 text-sm"><?php echo date('l, F j'); ?></p>
+                    </div>
+                </div>
+                <div class="hidden sm:block">
+                    <div class="text-4xl">🌟</div>
+                </div>
+            </div>
+            
+            <?php
+            // Array of motivational quotes for students
+            $motivational_quotes = [
+                "The only way to do great work is to love what you do. - Steve Jobs",
+                "Success is not final, failure is not fatal: it is the courage to continue that counts. - Winston Churchill",
+                "Education is the most powerful weapon which you can use to change the world. - Nelson Mandela",
+                "The future belongs to those who believe in the beauty of their dreams. - Eleanor Roosevelt",
+                "Don't watch the clock; do what it does. Keep going. - Sam Levenson",
+                "The only limit to our realization of tomorrow is our doubts of today. - Franklin D. Roosevelt",
+                "Believe you can and you're halfway there. - Theodore Roosevelt",
+                "Your time is limited, don't waste it living someone else's life. - Steve Jobs",
+                "The journey of a thousand miles begins with one step. - Lao Tzu",
+                "What you get by achieving your goals is not as important as what you become by achieving your goals. - Zig Ziglar",
+                "Success is walking from failure to failure with no loss of enthusiasm. - Winston Churchill",
+                "The mind is not a vessel to be filled, but a fire to be kindled. - Plutarch",
+                "Learning is not attained by chance, it must be sought for with ardor and attended to with diligence. - Abigail Adams",
+                "The beautiful thing about learning is that nobody can take it away from you. - B.B. King",
+                "Education is not preparation for life; education is life itself. - John Dewey"
+            ];
+            
+            // Use date to select a quote (changes daily)
+            $quote_index = (int)date('z') % count($motivational_quotes);
+            $todays_quote = $motivational_quotes[$quote_index];
+            ?>
+            
+            <div class="mb-4">
+                <blockquote class="text-lg sm:text-xl font-medium italic leading-relaxed">
+                    "<?php echo $todays_quote; ?>"
+                </blockquote>
+            </div>
+            
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <span class="text-sm text-orange-100 font-medium">Daily Inspiration</span>
+                </div>
+                
+                <a href="<?php echo APP_URL; ?>/motivation.php" class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg transition-all duration-300 font-medium text-sm backdrop-blur-sm border border-white border-opacity-30">
+                    More Motivation →
+                </a>
+            </div>
+        </div>
+    </div>
+
     <!-- Stats Overview -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div class="stats-card bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl shadow-lg border border-blue-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
@@ -233,6 +308,47 @@ include __DIR__ . '/../includes/layout/header.php';
 
         <!-- Right Sidebar -->
         <div class="space-y-4 sm:space-y-6">
+            <!-- Daily Motivation Tip -->
+            <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl shadow border border-indigo-100">
+                <div class="p-4 sm:p-6 border-b border-indigo-100">
+                    <h3 class="text-base sm:text-lg font-semibold text-indigo-800 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                        Today's Tip
+                    </h3>
+                </div>
+                <div class="p-4 sm:p-6">
+                    <?php
+                    // Array of daily study tips
+                    $study_tips = [
+                        "Break large tasks into smaller, manageable chunks. It's easier to tackle 30-minute sessions than 3-hour marathons.",
+                        "Use the Pomodoro Technique: 25 minutes of focused work, then a 5-minute break. Repeat!",
+                        "Review your notes within 24 hours of learning. This helps retain information much better.",
+                        "Create a dedicated study space. Your brain associates specific places with specific activities.",
+                        "Practice active recall instead of passive reading. Test yourself on the material.",
+                        "Connect new information to what you already know. This creates stronger neural pathways.",
+                        "Get enough sleep! Your brain consolidates learning while you rest.",
+                        "Stay hydrated and take regular breaks. Your brain works better when you're healthy.",
+                        "Use spaced repetition for memorization. Review material at increasing intervals.",
+                        "Teach someone else what you've learned. This is one of the best ways to master a topic."
+                    ];
+                    
+                    // Use date to select a tip (changes daily)
+                    $tip_index = (int)date('z') % count($study_tips);
+                    $todays_tip = $study_tips[$tip_index];
+                    ?>
+                    
+                    <div class="text-sm text-indigo-700 leading-relaxed mb-3">
+                        <?php echo $todays_tip; ?>
+                    </div>
+                    
+                    <div class="text-xs text-indigo-500 text-center">
+                        💡 Tip #<?php echo ($tip_index + 1); ?> of <?php echo count($study_tips); ?>
+                    </div>
+                </div>
+            </div>
+
             <!-- Streaks & Badges -->
             <div class="bg-white rounded-xl shadow">
                 <div class="p-4 sm:p-6 border-b border-gray-100">
