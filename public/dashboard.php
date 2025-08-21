@@ -38,15 +38,15 @@ include __DIR__ . '/../includes/layout/header.php';
     <div class="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-xl p-4 sm:p-6 text-white relative overflow-hidden">
         <!-- Background decorative elements -->
         <div class="absolute inset-0">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-white bg-opacity-10 rounded-full -mr-16 -mt-16"></div>
-            <div class="absolute bottom-0 left-0 w-24 h-24 bg-white bg-opacity-10 rounded-full -ml-12 -mb-12"></div>
-            <div class="absolute top-1/2 right-1/4 w-16 h-16 bg-white bg-opacity-5 rounded-full"></div>
+            <div class="absolute top-0 right-0 w-20 h-20 bg-white bg-opacity-10 rounded-full -mr-10 -mt-10"></div>
+            <div class="absolute bottom-0 left-0 w-16 h-16 bg-white bg-opacity-10 rounded-full -ml-8 -mb-8"></div>
+            <div class="absolute top-1/2 right-1/4 w-12 h-12 bg-white bg-opacity-5 rounded-full"></div>
         </div>
         
         <div class="relative z-10 flex items-center justify-between">
             <div class="flex items-center space-x-4">
-                <div class="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg>
                 </div>
@@ -64,9 +64,9 @@ include __DIR__ . '/../includes/layout/header.php';
 
     <!-- Stats Overview -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl shadow-lg border border-blue-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+        <div class="stats-card bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl shadow-lg border border-blue-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
             <div class="flex items-center justify-between">
-                <div class="flex items-center">
+                <div class="flex items-center icon-foreground">
                     <div class="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-md">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
@@ -77,17 +77,17 @@ include __DIR__ . '/../includes/layout/header.php';
                         <p class="text-2xl font-bold text-blue-800"><?php echo $stats['total']; ?></p>
                     </div>
                 </div>
-                <div class="text-blue-400 opacity-20">
-                    <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
+                <div class="icon-background text-blue-400">
+                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                     </svg>
                 </div>
             </div>
         </div>
 
-        <div class="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl shadow-lg border border-green-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+        <div class="stats-card bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl shadow-lg border border-green-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
             <div class="flex items-center justify-between">
-                <div class="flex items-center">
+                <div class="flex items-center icon-foreground">
                     <div class="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-md">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -98,38 +98,38 @@ include __DIR__ . '/../includes/layout/header.php';
                         <p class="text-2xl font-bold text-green-800"><?php echo $stats['completed']; ?></p>
                     </div>
                 </div>
-                <div class="text-green-400 opacity-20">
-                    <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
+                <div class="icon-background text-green-400">
+                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                     </svg>
                 </div>
             </div>
         </div>
 
-        <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 rounded-xl shadow-lg border border-yellow-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+        <div class="stats-card bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 rounded-xl shadow-lg border border-yellow-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
             <div class="flex items-center justify-between">
-                <div class="flex items-center">
+                <div class="flex items-center icon-foreground">
                     <div class="p-3 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl shadow-md">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                </div>
+                    </div>
                     <div class="ml-3">
                         <p class="text-sm text-yellow-600 font-medium">Pending</p>
                         <p class="text-2xl font-bold text-yellow-800"><?php echo $stats['pending']; ?></p>
                     </div>
                 </div>
-                <div class="text-yellow-400 opacity-20">
-                    <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
+                <div class="icon-background text-yellow-400">
+                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                     </svg>
                 </div>
             </div>
         </div>
 
-        <div class="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-xl shadow-lg border border-red-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+        <div class="stats-card bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-xl shadow-lg border border-red-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
             <div class="flex items-center justify-between">
-                <div class="flex items-center">
+                <div class="flex items-center icon-foreground">
                     <div class="p-3 bg-gradient-to-br from-red-500 to-red-600 rounded-xl shadow-md">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
@@ -140,9 +140,9 @@ include __DIR__ . '/../includes/layout/header.php';
                         <p class="text-2xl font-bold text-red-800"><?php echo $stats['overdue']; ?></p>
                     </div>
                 </div>
-                <div class="text-red-400 opacity-20">
-                    <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.7.59L19 8l-9 9z"/>
+                <div class="icon-background text-red-400">
+                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                     </svg>
                 </div>
             </div>
@@ -176,7 +176,7 @@ include __DIR__ . '/../includes/layout/header.php';
             <div class="p-4 sm:p-6">
                 <?php if (empty($tasks)): ?>
                     <div class="text-center py-8">
-                        <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                         </svg>
                         <p class="text-gray-500">No tasks yet. Create your first task to get started!</p>
