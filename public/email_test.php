@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/auth.php';
@@ -8,6 +9,10 @@ $user = current_user();
 
 $message = '';
 $error = '';
+
+// Check PHPMailer availability after autoloader is included
+$phpmailer_available = class_exists('PHPMailer\PHPMailer\PHPMailer');
+$mailer_file_exists = file_exists(__DIR__ . '/../includes/mailer.php');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verify_csrf($_POST['csrf'] ?? '')) {
@@ -139,10 +144,6 @@ include __DIR__ . '/../includes/layout/header.php';
             <div class="bg-white rounded-xl shadow-lg p-6">
                 <h3 class="text-xl font-semibold text-gray-800 mb-4">🔧 System Status</h3>
                 <div class="space-y-2">
-                    <?php
-                    $phpmailer_available = class_exists('PHPMailer\PHPMailer\PHPMailer');
-                    $mailer_file_exists = file_exists(__DIR__ . '/../includes/mailer.php');
-                    ?>
                     <p><strong>PHPMailer:</strong> 
                         <span class="<?php echo $phpmailer_available ? 'text-green-600' : 'text-red-600'; ?>">
                             <?php echo $phpmailer_available ? '✅ Available' : '❌ Not Found'; ?>
