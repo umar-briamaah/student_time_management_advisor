@@ -263,78 +263,18 @@ include __DIR__ . '/../includes/layout/header.php';
                 </div>
             </div>
             <div class="flex gap-3 mt-4 sm:mt-0">
-                <a href="<?php echo APP_URL; ?>/debug.php" 
-                   class="bg-gradient-to-r from-gray-600 to-gray-700 text-white px-4 py-3 rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-300 font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    </svg>
-                    Debug Info
-                </a>
                 <button onclick="document.getElementById('createTaskModal').classList.remove('hidden')" 
-                        class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 text-lg">
+                    <svg class="w-6 h-6 inline mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg>
-                    + New Task
+                    + Create New Task
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Debug Information (remove this in production) -->
-    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-        <div class="flex items-center">
-            <svg class="w-5 h-5 text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <div>
-                <p class="text-blue-800 font-medium">Debug Info:</p>
-                <p class="text-blue-700 text-sm">User ID: <?php echo $debug_info['current_user_id']; ?> | Name: <?php echo h($debug_info['current_user_name']); ?> | Email: <?php echo h($debug_info['current_user_email']); ?></p>
-                <p class="text-blue-700 text-sm">Total tasks found: <?php echo count($tasks); ?></p>
-                <p class="text-blue-700 text-sm">Database tasks for user <?php echo $user['id']; ?>: <?php 
-                    $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM tasks WHERE user_id = ?");
-                    $stmt->execute([$user['id']]);
-                    echo $stmt->fetch()['count'];
-                ?></p>
-                <p class="text-blue-700 text-sm">Current time: <?php echo date('Y-m-d H:i:s'); ?></p>
-                <p class="text-blue-700 text-sm">Default due time: <?php echo date('Y-m-d\TH:i', strtotime('+1 day')); ?></p>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Simple Test Form -->
-    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-        <h3 class="text-yellow-800 font-medium mb-2">Test Form (Debug)</h3>
-        <form method="post" class="space-y-2">
-            <input type="hidden" name="csrf" value="<?php echo csrf_token(); ?>">
-            <input type="hidden" name="create" value="1">
-            <input type="text" name="title" placeholder="Test Task Title" required class="w-full border rounded px-2 py-1">
-            <input type="datetime-local" name="due_at" required 
-                   value="<?php echo date('Y-m-d\TH:i', strtotime('+1 day')); ?>"
-                   min="<?php echo date('Y-m-d\TH:i'); ?>"
-                   class="w-full border rounded px-2 py-1">
-            <button type="submit" class="bg-yellow-600 text-white px-3 py-1 rounded text-sm">
-                Create Test Task
-            </button>
-        </form>
-        
-        <!-- Direct Test Button -->
-        <div class="mt-3 pt-3 border-t border-yellow-200">
-            <form method="post" class="inline">
-                <input type="hidden" name="csrf" value="<?php echo csrf_token(); ?>">
-                <input type="hidden" name="create" value="1">
-                <input type="hidden" name="title" value="Direct Test Task">
-                <input type="hidden" name="due_at" value="<?php echo date('Y-m-d\TH:i'); ?>">
-                <input type="hidden" name="category" value="Other">
-                <input type="hidden" name="description" value="This is a direct test task">
-                <input type="hidden" name="estimated_minutes" value="30">
-                <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded text-sm">
-                    Create Direct Test Task (No Validation)
-                </button>
-            </form>
-        </div>
-    </div>
+
 
     <!-- Messages -->
     <?php if ($success_message): ?>
@@ -418,21 +358,22 @@ include __DIR__ . '/../includes/layout/header.php';
         
         <div class="p-6">
             <?php if (empty($tasks)): ?>
-                <div class="text-center py-16">
-                    <div class="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
-                                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                    </svg>
+                <div class="text-center py-20">
+                    <div class="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg">
+                        <svg class="w-12 h-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-600 mb-3">No tasks found</h3>
-                    <p class="text-gray-500 mb-6">Start your productivity journey by creating your first task</p>
+                    <h3 class="text-3xl font-bold text-gray-800 mb-4">Ready to Get Organized? 🚀</h3>
+                    <p class="text-lg text-gray-600 mb-8 max-w-md mx-auto">Create your first task and start building your academic success story. Track deadlines, manage priorities, and stay on top of your studies.</p>
                     <button onclick="document.getElementById('createTaskModal').classList.remove('hidden')" 
-                            class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-                        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-10 py-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 font-bold shadow-xl hover:shadow-2xl transform hover:-translate-y-2 text-xl">
+                        <svg class="w-7 h-7 inline mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                         </svg>
-                        Create Your First Task
+                        ✨ Create Your First Task
                     </button>
+                    <p class="text-sm text-gray-500 mt-4">It only takes a few seconds to get started!</p>
                 </div>
             <?php else: ?>
                 <div class="space-y-4">
@@ -522,12 +463,19 @@ include __DIR__ . '/../includes/layout/header.php';
 
 <!-- Create Task Modal -->
 <div id="createTaskModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div class="relative top-10 mx-auto p-8 border w-full max-w-md shadow-2xl rounded-2xl bg-white">
         <div class="mt-3">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Create New Task</h3>
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900">Create New Task</h3>
+                </div>
                 <button onclick="document.getElementById('createTaskModal').classList.add('hidden')" 
-                        class="text-gray-400 hover:text-gray-600">
+                        class="text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-gray-100 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
@@ -538,52 +486,62 @@ include __DIR__ . '/../includes/layout/header.php';
                 <input type="hidden" name="csrf" value="<?php echo csrf_token(); ?>">
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Task Title *</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Task Title *</label>
                     <input type="text" name="title" required 
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                           placeholder="Enter task title">
+                           class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg"
+                           placeholder="e.g., Complete Math Assignment">
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                    <select name="category" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        <option value="Lecture">Lecture</option>
-                        <option value="Lab">Lab</option>
-                        <option value="Exam">Exam</option>
-                        <option value="Assignment">Assignment</option>
-                        <option value="Other" selected>Other</option>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Category</label>
+                    <select name="category" class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg bg-white">
+                        <option value="Assignment" selected>📚 Assignment</option>
+                        <option value="Exam">📝 Exam</option>
+                        <option value="Lab">🔬 Lab</option>
+                        <option value="Lecture">🎓 Lecture</option>
+                        <option value="Other">📋 Other</option>
                     </select>
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Description</label>
                     <textarea name="description" rows="3" 
-                              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              placeholder="Task description (optional)"></textarea>
+                              class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
+                              placeholder="Add details about your task (optional)"></textarea>
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Due Date & Time *</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Due Date & Time *</label>
                     <input type="datetime-local" name="due_at" required 
                            value="<?php echo date('Y-m-d\TH:i', strtotime('+1 day')); ?>"
                            min="<?php echo date('Y-m-d\TH:i'); ?>"
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    <p class="text-xs text-gray-500 mt-1">Select a future date and time</p>
+                           class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg">
+                    <p class="text-xs text-blue-600 mt-2 flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Select a future date and time
+                    </p>
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Estimated Minutes</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Estimated Time</label>
                     <input type="number" name="estimated_minutes" value="60" min="15" step="15"
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                           class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg"
+                           placeholder="60">
+                    <p class="text-xs text-gray-500 mt-1">How long will this task take? (in minutes)</p>
                 </div>
                 
-                <div class="flex gap-3 pt-4">
+                <div class="flex gap-4 pt-6">
                     <button type="submit" name="create" value="1" 
-                            class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                            class="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 font-bold shadow-lg hover:shadow-xl transform hover:-translate-y-1 text-lg">
+                        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
                         Create Task
                     </button>
                     <button type="button" onclick="document.getElementById('createTaskModal').classList.add('hidden')"
-                            class="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors">
+                            class="flex-1 bg-gray-100 text-gray-700 px-6 py-4 rounded-xl hover:bg-gray-200 transition-all duration-300 font-semibold border-2 border-gray-200 hover:border-gray-300">
                         Cancel
                     </button>
                 </div>
@@ -594,12 +552,19 @@ include __DIR__ . '/../includes/layout/header.php';
 
 <!-- Edit Task Modal -->
 <div id="editTaskModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div class="relative top-10 mx-auto p-8 border w-full max-w-md shadow-2xl rounded-2xl bg-white">
         <div class="mt-3">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Edit Task</h3>
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-600 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900">Edit Task</h3>
+                </div>
                 <button onclick="document.getElementById('editTaskModal').classList.add('hidden')" 
-                        class="text-gray-400 hover:text-gray-600">
+                        class="text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-gray-100 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
@@ -611,49 +576,58 @@ include __DIR__ . '/../includes/layout/header.php';
                 <input type="hidden" name="task_id" id="edit_task_id">
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Task Title *</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Task Title *</label>
                     <input type="text" name="title" id="edit_title" required 
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                           class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg">
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                    <select name="category" id="edit_category" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        <option value="Lecture">Lecture</option>
-                        <option value="Lab">Lab</option>
-                        <option value="Exam">Exam</option>
-                        <option value="Assignment">Assignment</option>
-                        <option value="Other">Other</option>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Category</label>
+                    <select name="category" id="edit_category" class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg bg-white">
+                        <option value="Assignment">📚 Assignment</option>
+                        <option value="Exam">📝 Exam</option>
+                        <option value="Lab">🔬 Lab</option>
+                        <option value="Lecture">🎓 Lecture</option>
+                        <option value="Other">📋 Other</option>
                     </select>
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Description</label>
                     <textarea name="description" id="edit_description" rows="3" 
-                              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                              class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"></textarea>
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Due Date & Time *</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Due Date & Time *</label>
                     <input type="datetime-local" name="due_at" id="edit_due_at" required 
                            min="<?php echo date('Y-m-d\TH:i'); ?>"
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    <p class="text-xs text-gray-500 mt-1">Select a future date and time</p>
+                           class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg">
+                    <p class="text-xs text-blue-600 mt-2 flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Select a future date and time
+                    </p>
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Estimated Minutes</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Estimated Time</label>
                     <input type="number" name="estimated_minutes" id="edit_estimated_minutes" min="15" step="15"
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                           class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg">
+                    <p class="text-xs text-gray-500 mt-1">How long will this task take? (in minutes)</p>
                 </div>
                 
-                <div class="flex gap-3 pt-4">
+                <div class="flex gap-4 pt-6">
                     <button type="submit" name="edit_task" value="1" 
-                            class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                            class="flex-1 bg-gradient-to-r from-green-600 to-blue-600 text-white px-6 py-4 rounded-xl hover:from-green-700 hover:to-blue-700 transition-all duration-300 font-bold shadow-lg hover:shadow-xl transform hover:-translate-y-1 text-lg">
+                        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
                         Update Task
                     </button>
                     <button type="button" onclick="document.getElementById('editTaskModal').classList.add('hidden')"
-                            class="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors">
+                            class="flex-1 bg-gray-100 text-gray-700 px-6 py-4 rounded-xl hover:bg-gray-200 transition-all duration-300 font-semibold border-2 border-gray-200 hover:border-gray-300">
                         Cancel
                     </button>
                 </div>
