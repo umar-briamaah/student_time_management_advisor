@@ -129,6 +129,19 @@ CREATE TABLE user_badges (
   INDEX idx_user_badges_awarded (awarded_at)
 ) ENGINE=InnoDB;
 
+-- Password resets table - Store password reset tokens
+CREATE TABLE password_resets (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  token VARCHAR(64) NOT NULL UNIQUE,
+  expires_at DATETIME NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_token (token),
+  INDEX idx_user_expires (user_id, expires_at)
+) ENGINE=InnoDB;
+
 -- Categories table - Customizable task categories
 CREATE TABLE categories (
   id INT AUTO_INCREMENT PRIMARY KEY,

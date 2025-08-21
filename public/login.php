@@ -133,6 +133,9 @@ include __DIR__ . '/../includes/layout/header.php';
                 Don't have an account? 
                 <a class="text-blue-600 hover:text-blue-700 font-medium transition-colors" href="<?php echo APP_URL; ?>/register.php">Sign up</a>
             </p>
+            <p class="text-sm text-gray-600 text-center">
+                <a class="text-blue-600 hover:text-blue-700 font-medium transition-colors" href="<?php echo APP_URL; ?>/forgot_password.php">Forgot your password?</a>
+            </p>
         </div>
     </form>
     

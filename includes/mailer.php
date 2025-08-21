@@ -111,6 +111,26 @@ class EmailSystem {
     }
     
     /**
+     * Send password reset email
+     */
+    public function sendPasswordResetEmail($user_id, $reset_link) {
+        try {
+            $user = $this->getUserById($user_id);
+            if (!$user) {
+                throw new Exception('User not found');
+            }
+            
+            $subject = 'Password Reset Request - Student Time Advisor';
+            $body = $this->getPasswordResetEmailTemplate($user['name'], $reset_link);
+            
+            return $this->sendEmail($user['email'], $subject, $body);
+        } catch (Exception $e) {
+            error_log('Failed to send password reset email: ' . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
      * Send welcome email to new users
      */
     public function sendWelcomeEmail($user_id) {
@@ -402,6 +422,62 @@ class EmailSystem {
     /**
      * Email Templates
      */
+    
+    private function getPasswordResetEmailTemplate($name, $reset_link) {
+        return "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>Password Reset Request</title>
+        </head>
+        <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;'>
+            <div style='background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); padding: 30px; text-align: center; border-radius: 10px; margin-bottom: 30px;'>
+                <h1 style='color: white; margin: 0; font-size: 28px;'>🔐 Password Reset Request</h1>
+                <p style='color: white; margin: 10px 0 0 0; font-size: 16px;'>Secure your account with a new password</p>
+            </div>
+            
+            <div style='background: #f8f9fa; padding: 25px; border-radius: 10px; margin-bottom: 25px;'>
+                <h2 style='color: #2c3e50; margin-top: 0;'>Hello {$name}! 👋</h2>
+                
+                <p style='font-size: 16px; margin-bottom: 20px;'>
+                    We received a request to reset your password for your Student Time Advisor account.
+                </p>
+                
+                <div style='background: white; padding: 20px; border-radius: 8px; border-left: 4px solid #ef4444; margin: 20px 0;'>
+                    <h3 style='color: #2c3e50; margin-top: 0;'>⚠️ Important Security Notice:</h3>
+                    <ul style='text-align: left; padding-left: 20px;'>
+                        <li>This link will expire in 1 hour for security reasons</li>
+                        <li>This link can only be used once</li>
+                        <li>If you didn't request this reset, ignore this email</li>
+                    </ul>
+                </div>
+                
+                <div style='text-align: center; margin: 30px 0;'>
+                    <a href='{$reset_link}' style='background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; display: inline-block;'>Reset Password</a>
+                </div>
+                
+                <p style='font-size: 14px; color: #666; text-align: center;'>
+                    If the button doesn't work, copy and paste this link into your browser:<br>
+                    <span style='word-break: break-all; color: #3b82f6;'>{$reset_link}</span>
+                </p>
+            </div>
+            
+            <div style='background: #e8f4fd; padding: 20px; border-radius: 8px; border: 1px solid #bee5eb;'>
+                <h3 style='color: #0c5460; margin-top: 0;'>🔒 Security Tips:</h3>
+                <p style='margin-bottom: 10px;'><strong>Strong Password:</strong> Use a combination of letters, numbers, and symbols.</p>
+                <p style='margin-bottom: 10px;'><strong>Unique Password:</strong> Don't reuse passwords from other accounts.</p>
+                <p style='margin-bottom: 0;'><strong>Regular Updates:</strong> Change your password periodically for better security.</p>
+            </div>
+            
+            <div style='text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 14px;'>
+                <p>If you have any questions or concerns, please contact our support team.</p>
+                <p>Stay secure! 🔐✨</p>
+            </div>
+        </body>
+        </html>";
+    }
     
     private function getWelcomeEmailTemplate($user) {
         return "
