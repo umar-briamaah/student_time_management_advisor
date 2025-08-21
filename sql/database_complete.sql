@@ -21,6 +21,7 @@ CREATE TABLE users (
   password_hash VARCHAR(255) NOT NULL,
   preferred_study_hour TINYINT DEFAULT 18, -- 6pm default
   timezone VARCHAR(50) DEFAULT 'UTC',
+  last_login TIMESTAMP NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   

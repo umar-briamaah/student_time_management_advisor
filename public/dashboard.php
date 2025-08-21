@@ -4,10 +4,7 @@ require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 
-// Ensure APP_URL is defined
-if (!defined('APP_URL')) {
-    define('APP_URL', 'http://localhost/student-time-advisor-php/public');
-}
+// APP_URL should be defined in config.php
 
 require_login();
 $user = current_user();

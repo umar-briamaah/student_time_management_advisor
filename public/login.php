@@ -21,7 +21,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch();
         
         if ($user && password_verify($password, $user['password_hash'])) {
+            // Regenerate session ID for security
+            session_regenerate_id(true);
+            
             $_SESSION['user'] = ['id' => $user['id'], 'name' => $user['name'], 'email' => $user['email']];
+            
+            // Update last login time
+            $update_stmt = $pdo->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
+            $update_stmt->execute([$user['id']]);
+            
             header('Location: ' . APP_URL . '/dashboard.php');
             exit;
         } else {

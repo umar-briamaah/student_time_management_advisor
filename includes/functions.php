@@ -97,7 +97,7 @@ function get_user_statistics($user_id) {
         $stmt = $pdo->prepare("
             SELECT 
                 COUNT(*) as total,
-                SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed,
+                SUM(completed) as completed,
                 SUM(CASE WHEN completed = 0 AND due_at < NOW() THEN 1 ELSE 0 END) as overdue,
                 SUM(CASE WHEN completed = 0 AND due_at >= NOW() THEN 1 ELSE 0 END) as pending,
                 AVG(CASE WHEN completed = 1 THEN estimated_minutes ELSE NULL END) as avg_completion_time,

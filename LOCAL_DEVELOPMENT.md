@@ -7,6 +7,7 @@ This guide helps you run your Student Time Management Advisor locally without an
 ## 🚀 **Quick Start (3 Steps):**
 
 ### **Step 1: Start Development Server**
+
 ```bash
 # Navigate to your project directory
 cd /path/to/your/project
@@ -16,11 +17,13 @@ php -S localhost:8000 -t public
 ```
 
 ### **Step 2: Open Your Browser**
+
 ```
 http://localhost:8000
 ```
 
 ### **Step 3: Start Developing!**
+
 - ✅ **No deployment needed**
 - ✅ **Instant code changes**
 - ✅ **Easy debugging**
@@ -29,6 +32,7 @@ http://localhost:8000
 ## 🔧 **Local Environment Setup:**
 
 ### **Create Local .env File:**
+
 ```bash
 # Create .env file for local development
 cat > .env << 'EOF'
@@ -51,6 +55,7 @@ EOF
 ### **Database Options:**
 
 #### **Option A: Local MySQL (Recommended for now)**
+
 ```bash
 # Install MySQL if you don't have it
 sudo apt install mysql-server
@@ -63,6 +68,7 @@ SOURCE sql/database_complete.sql;
 ```
 
 #### **Option B: Local PostgreSQL**
+
 ```bash
 # Install PostgreSQL
 sudo apt install postgresql postgresql-contrib
@@ -77,6 +83,7 @@ psql -U postgres -d student_time_advisor -f sql/database_postgresql.sql
 ```
 
 ## 📁 **Project Structure:**
+
 ```
 student_time_management_advisor/
 ├── public/                    # Web root (accessible via browser)
@@ -98,6 +105,7 @@ student_time_management_advisor/
 ## 🚀 **Development Commands:**
 
 ### **Start Server:**
+
 ```bash
 # Start development server
 php -S localhost:8000 -t public
@@ -107,11 +115,13 @@ php -S localhost:3000 -t public
 ```
 
 ### **Stop Server:**
+
 ```bash
 # Press Ctrl+C in the terminal where server is running
 ```
 
 ### **Restart Server:**
+
 ```bash
 # Stop with Ctrl+C, then start again
 php -S localhost:8000 -t public
@@ -120,6 +130,7 @@ php -S localhost:8000 -t public
 ## 🔍 **Troubleshooting:**
 
 ### **Port Already in Use:**
+
 ```bash
 # Check what's using port 8000
 lsof -i :8000
@@ -132,6 +143,7 @@ php -S localhost:3000 -t public
 ```
 
 ### **Database Connection Issues:**
+
 ```bash
 # Check if MySQL is running
 sudo systemctl status mysql
@@ -144,6 +156,7 @@ mysql -u root -p -e "SHOW DATABASES;"
 ```
 
 ### **File Permission Issues:**
+
 ```bash
 # Fix permissions
 chmod 755 public/
@@ -154,23 +167,26 @@ chmod 644 .env
 ## 📱 **Access Your App:**
 
 ### **Main Pages:**
-- **Home:** http://localhost:8000
-- **Login:** http://localhost:8000/login.php
-- **Register:** http://localhost:8000/register.php
-- **Dashboard:** http://localhost:8000/dashboard.php
-- **Tasks:** http://localhost:8000/tasks.php
-- **Calendar:** http://localhost:8000/calendar.php
-- **Motivation:** http://localhost:8000/motivation.php
-- **Reports:** http://localhost:8000/reports.php
+
+- **Home:** <http://localhost:8000>
+- **Login:** <http://localhost:8000/login.php>
+- **Register:** <http://localhost:8000/register.php>
+- **Dashboard:** <http://localhost:8000/dashboard.php>
+- **Tasks:** <http://localhost:8000/tasks.php>
+- **Calendar:** <http://localhost:8000/calendar.php>
+- **Motivation:** <http://localhost:8000/motivation.php>
+- **Reports:** <http://localhost:8000/reports.php>
 
 ### **Assets:**
-- **CSS:** http://localhost:8000/assets/css/styles.css
-- **JavaScript:** http://localhost:8000/assets/js/app.js
-- **Images:** http://localhost:8000/assets/images/
+
+- **CSS:** <http://localhost:8000/assets/css/styles.css>
+- **JavaScript:** <http://localhost:8000/assets/js/app.js>
+- **Images:** <http://localhost:8000/assets/images/>
 
 ## 🎨 **Development Workflow:**
 
 ### **1. Make Code Changes:**
+
 ```bash
 # Edit your PHP files
 nano public/dashboard.php
@@ -178,10 +194,12 @@ nano public/dashboard.php
 ```
 
 ### **2. Refresh Browser:**
+
 - Just refresh the page to see changes
 - No need to restart the server
 
 ### **3. Check for Errors:**
+
 - Look at the terminal where server is running
 - Check browser console (F12)
 - Check browser network tab
@@ -189,11 +207,13 @@ nano public/dashboard.php
 ## 🔧 **Useful Development Tools:**
 
 ### **Browser Extensions:**
+
 - **Live Server** - Auto-refresh on file changes
 - **PHP Console** - Debug PHP in browser
 - **JSON Formatter** - Format API responses
 
 ### **Code Editors:**
+
 - **VS Code** - Great PHP support
 - **PHPStorm** - Professional PHP IDE
 - **Sublime Text** - Lightweight editor
@@ -201,6 +221,7 @@ nano public/dashboard.php
 ## 📊 **Local Database Management:**
 
 ### **View Data:**
+
 ```bash
 # Connect to database
 mysql -u root -p student_time_advisor
@@ -216,6 +237,7 @@ SELECT * FROM tasks;
 ```
 
 ### **Reset Database:**
+
 ```bash
 # Drop and recreate
 mysql -u root -p
@@ -245,7 +267,7 @@ SOURCE sql/database_complete.sql;
 ## 🎉 **You're All Set!**
 
 Your Student Time Management Advisor is now running locally at:
-**http://localhost:8000**
+**<http://localhost:8000>**
 
 **Happy coding! 🚀**
 

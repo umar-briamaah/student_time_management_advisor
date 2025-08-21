@@ -4,10 +4,7 @@ require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 
-// Ensure APP_URL is defined
-if (!defined('APP_URL')) {
-    define('APP_URL', 'http://localhost/student-time-advisor-php/public');
-}
+// APP_URL should be defined in config.php
 
 require_login();
 $user = current_user();
@@ -15,17 +12,10 @@ $pdo = DB::conn();
 $errors = [];
 $success_message = '';
 
-// Debug: Log all POST requests
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    error_log("POST request received: " . print_r($_POST, true));
-    error_log("Current user: " . print_r($user, true));
-    
-    // Check if this is a task creation request
-    if (isset($_POST['create'])) {
-        error_log("Task creation request detected!");
-        error_log("POST data for task creation: " . print_r($_POST, true));
-    } else {
-        error_log("No 'create' parameter found in POST data");
+// Debug logging only in development mode
+if (defined('DEBUG') && DEBUG) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        error_log("POST request received for user: " . $user['id']);
     }
 }
 
@@ -102,19 +92,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create'])) {
         }
         
         if (empty($errors)) {
-            // Debug: Log the user ID being used
-            error_log("Creating task for user ID: " . $user['id'] . " (Name: " . $user['name'] . ")");
-            error_log("Task data: " . print_r($task_data, true));
-            
             try {
-                // Simple direct insertion for debugging
+                // Insert task
                 $stmt = $pdo->prepare("INSERT INTO tasks (user_id,title,description,category,due_at,estimated_minutes) VALUES (?,?,?,?,?,?)");
                 $result = $stmt->execute([$user['id'], $task_data['title'], $task_data['description'], $task_data['category'], $task_data['due_at'], $task_data['estimated_minutes']]);
                 
                 if ($result) {
                     // Schedule reminders T-48h and T-12h
                     $tid = $pdo->lastInsertId();
-                    error_log("Task created with ID: " . $tid);
                     
                     $due = new DateTime($task_data['due_at']);
                     foreach([48,12] as $h){
@@ -123,19 +108,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create'])) {
                             $pdo->prepare("INSERT INTO reminders (task_id,user_id,send_at) VALUES (?,?,?)")->execute([$tid,$user['id'],$send]);
                         }
                     }
-                    $success_message = 'Task created successfully! (User ID: ' . $user['id'] . ', Task ID: ' . $tid . ')';
-                    error_log("Success message set: " . $success_message);
+                    
+                    // Clear user cache since data has changed
+                    clear_user_cache($user['id']);
+                    
+                    $success_message = 'Task created successfully!';
                 } else {
-                    $error_msg = 'Failed to create task: ' . implode(', ', $stmt->errorInfo());
-                    error_log($error_msg);
-                    $errors[] = $error_msg;
+                    $errors[] = 'Failed to create task. Please try again.';
                 }
             } catch (Exception $e) {
-                error_log("Exception creating task: " . $e->getMessage());
-                $errors[] = 'Exception creating task: ' . $e->getMessage();
+                if (defined('DEBUG') && DEBUG) {
+                    error_log("Exception creating task: " . $e->getMessage());
+                }
+                $errors[] = 'An error occurred while creating the task. Please try again.';
             }
-        } else {
-            error_log("Validation errors prevented task creation: " . print_r($errors, true));
         }
     }
 }
@@ -193,12 +179,8 @@ $filter_status = $_GET['status'] ?? 'all';
 $filter_category = $_GET['category'] ?? 'all';
 $search = trim($_GET['search'] ?? '');
 
-// Debug information
-$debug_info = [
-    'current_user_id' => $user['id'],
-    'current_user_name' => $user['name'],
-    'current_user_email' => $user['email']
-];
+// User info for filtering
+$user_id = $user['id'];
 
 // Build query with filters
 $where_conditions = ["user_id = ?"];
@@ -223,26 +205,10 @@ if (!empty($search)) {
 
 $where_clause = implode(' AND ', $where_conditions);
 
-// Debug: Log the query and parameters
-error_log("Query WHERE clause: " . $where_clause);
-error_log("Query parameters: " . print_r($params, true));
-error_log("User ID being used: " . $user['id']);
-
 // Fetch tasks with filters
 $stmt = $pdo->prepare("SELECT * FROM tasks WHERE $where_clause ORDER BY due_at ASC");
 $stmt->execute($params);
 $tasks = $stmt->fetchAll();
-
-// Debug: Log the results
-error_log("Tasks found: " . count($tasks));
-if (empty($tasks)) {
-    error_log("No tasks found - checking raw query...");
-    // Try a simple query to see if there are any tasks at all
-    $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM tasks WHERE user_id = ?");
-    $stmt->execute([$user['id']]);
-    $count = $stmt->fetch()['count'];
-    error_log("Raw count for user {$user['id']}: {$count}");
-}
 
 include __DIR__ . '/../includes/layout/header.php';
 ?>
