@@ -215,7 +215,7 @@ mysql -u dev_user student_time_advisor < sql/database_updated.sql
 php -r "require_once 'includes/config.php'; require_once 'includes/db.php'; DB::conn(); echo 'Connection successful!';"
 
 # Test email system
-# Visit /email_test.php after login
+# Email functionality available through cron jobs and system events
 ```
 
 ## 🚀 Production Deployment
@@ -270,7 +270,7 @@ php generate_secrets.php
 4. **Email Not Sending**
    - Verify SMTP settings in `.env`
    - Check PHPMailer installation
-   - Test with `/email_test.php`
+   - Review cron job logs for email delivery status
 
 ### **Debug Mode**
 
