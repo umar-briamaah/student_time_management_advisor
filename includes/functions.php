@@ -36,11 +36,11 @@ function category_weight($cat){
 
 function priority_score($task){
     $now = new DateTime();
-    $due = new DateTime($task['due_at']);
+    $due = new DateTime($task['due_date']);
     $days_left = max(0, (int)$now->diff($due)->format('%r%a'));
     $base = ($days_left <= 2) ? 100 : (($days_left <= 7) ? 60 : 30);
     $weight = category_weight($task['category']);
-    $progress_factor = $task['completed'] ? 0 : 1;
+    $progress_factor = ($task['status'] === 'completed') ? 0 : 1;
     return $base * $weight * $progress_factor;
 }
 
@@ -61,9 +61,9 @@ function get_category_color($category) {
     }
 }
 
-function format_due_date($due_at) {
+function format_due_date($due_date) {
     $now = new DateTime();
-    $due = new DateTime($due_at);
+    $due = new DateTime($due_date);
     $diff = $now->diff($due);
     
     if ($due < $now) {
@@ -97,12 +97,12 @@ function get_user_statistics($user_id) {
         $stmt = $pdo->prepare("
             SELECT 
                 COUNT(*) as total,
-                SUM(completed) as completed,
-                SUM(CASE WHEN completed = 0 AND due_at < NOW() THEN 1 ELSE 0 END) as overdue,
-                SUM(CASE WHEN completed = 0 AND due_at >= NOW() THEN 1 ELSE 0 END) as pending,
-                AVG(CASE WHEN completed = 1 THEN estimated_minutes ELSE NULL END) as avg_completion_time,
+                SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
+                SUM(CASE WHEN status != 'completed' AND due_date < NOW() THEN 1 ELSE 0 END) as overdue,
+                SUM(CASE WHEN status != 'completed' AND due_date >= NOW() THEN 1 ELSE 0 END) as pending,
+                AVG(CASE WHEN status = 'completed' THEN estimated_minutes ELSE NULL END) as avg_completion_time,
                 MAX(created_at) as last_task_created,
-                MAX(CASE WHEN completed = 1 THEN completed_at ELSE NULL END) as last_task_completed
+                MAX(CASE WHEN status = 'completed' THEN completed_at ELSE NULL END) as last_task_completed
             FROM tasks 
             WHERE user_id = ?
         ");

@@ -4,13 +4,25 @@ require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 
-// Ensure APP_URL is defined
-if (!defined('APP_URL')) {
-    define('APP_URL', 'http://localhost/student-time-advisor-php/public');
+// Start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
-require_login();
+// Check authentication
+if (!is_logged_in()) {
+    header('Location: /login.php');
+    exit();
+}
+
 $user = current_user();
+if (!$user) {
+    // User data not found, clear session and redirect to login
+    session_destroy();
+    header('Location: /login.php');
+    exit();
+}
+
 $pdo = DB::conn();
 
 // Get filter parameters
@@ -30,8 +42,8 @@ $monthly_stats = get_monthly_stats($user['id'], $year, $month);
 $stmt = $pdo->prepare("
     SELECT category, 
            COUNT(*) as total,
-           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed,
-           AVG(CASE WHEN completed = 1 THEN estimated_minutes ELSE NULL END) as avg_time
+           SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
+           AVG(CASE WHEN status = 'completed' THEN estimated_minutes ELSE NULL END) as avg_time
     FROM tasks 
     WHERE user_id = ? AND YEAR(created_at) = ? AND MONTH(created_at) = ?
     GROUP BY category
@@ -45,7 +57,7 @@ $stmt = $pdo->prepare("
     SELECT 
         YEARWEEK(created_at) as week,
         COUNT(*) as created,
-        SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed
+        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed
     FROM tasks 
     WHERE user_id = ? AND YEAR(created_at) = ? AND MONTH(created_at) = ?
     GROUP BY YEARWEEK(created_at)
@@ -58,10 +70,10 @@ $weekly_stats = $stmt->fetchAll();
 $stmt = $pdo->prepare("
     SELECT 
         COUNT(*) as total_overdue,
-        AVG(DATEDIFF(NOW(), due_at)) as avg_days_overdue,
-        MAX(DATEDIFF(NOW(), due_at)) as max_days_overdue
+        AVG(DATEDIFF(NOW(), due_date)) as avg_days_overdue,
+        MAX(DATEDIFF(NOW(), due_date)) as max_days_overdue
     FROM tasks 
-    WHERE user_id = ? AND completed = 0 AND due_at < NOW()
+    WHERE user_id = ? AND status != 'completed' AND due_date < NOW()
 ");
 $stmt->execute([$user['id']]);
 $overdue_stats = $stmt->fetch();
@@ -533,8 +545,7 @@ function generateCSVContent() {
         ["Report Date", new Date().toLocaleDateString()]
     ];
     
-    return data.map(row => row.join(",")).join("
-");
+    return data.map(row => row.join(",")).join("\n");
 }
 
 function showProgress(message) {

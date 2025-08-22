@@ -1,4 +1,6 @@
 <?php
 require_once __DIR__ . '/../includes/config.php';
-header('Location: ' . APP_URL . '/login.php');
+
+// Redirect to login - server is running from public directory
+header('Location: /login.php');
 exit;

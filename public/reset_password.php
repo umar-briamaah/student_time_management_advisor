@@ -4,6 +4,11 @@ require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/password_utils.php';
 
+// Start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $errors = [];
 $success_message = '';
 $token = $_GET['token'] ?? '';
@@ -15,8 +20,8 @@ if ($token) {
     try {
         $pdo = DB::conn();
         $stmt = $pdo->prepare("
-            SELECT pr.user_id, pr.expires_at, u.name, u.email 
-            FROM password_resets pr 
+            SELECT pr.user_id, pr.expires_at, u.first_name, u.email 
+            FROM password_reset_tokens pr 
             JOIN users u ON pr.user_id = u.id 
             WHERE pr.token = ? AND pr.expires_at > NOW()
         ");
@@ -58,17 +63,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $token_valid) {
                 
                 // Update password
                 $hash = password_hash($password, PASSWORD_DEFAULT);
-                $stmt = $pdo->prepare("UPDATE users SET password_hash = ?, updated_at = NOW() WHERE id = ?");
+                $stmt = $pdo->prepare("UPDATE users SET password = ?, updated_at = NOW() WHERE id = ?");
                 $stmt->execute([$hash, $user_id]);
                 
                 // Delete used reset token
-                $stmt = $pdo->prepare("DELETE FROM password_resets WHERE token = ?");
+                $stmt = $pdo->prepare("DELETE FROM password_reset_tokens WHERE token = ?");
                 $stmt->execute([$token]);
                 
                 $success_message = 'Password has been reset successfully! You can now log in with your new password.';
                 
                 // Redirect to login after 3 seconds
-                header("refresh:3;url=" . APP_URL . "/login.php");
+                header("refresh:3;url=/login.php");
                 
             } catch (Exception $e) {
                 if (defined('DEBUG') && DEBUG) {
@@ -126,7 +131,7 @@ include __DIR__ . '/../includes/layout/header.php';
                     <input type="hidden" name="csrf" value="<?php echo csrf_token(); ?>">
                     
                     <div class="form-group">
-                        <label class="form-label">New Password</label>
+                        <label for="password" class="form-label">New Password</label>
                         <div class="relative">
                             <input 
                                 class="form-control pr-12" 
@@ -163,7 +168,7 @@ include __DIR__ . '/../includes/layout/header.php';
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label">Confirm New Password</label>
+                        <label for="passwordConfirm" class="form-label">Confirm New Password</label>
                         <div class="relative">
                             <input 
                                 class="form-control pr-12" 

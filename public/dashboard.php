@@ -4,14 +4,29 @@ require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 
-// APP_URL should be defined in config.php
+// Start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-require_login();
+// Check authentication
+if (!is_logged_in()) {
+    header('Location: /login.php');
+    exit();
+}
+
 $user = current_user();
+if (!$user) {
+    // User data not found, clear session and redirect to login
+    session_destroy();
+    header('Location: /login.php');
+    exit();
+}
+
 $pdo = DB::conn();
 
 // Fetch tasks and compute priorities (with limit for performance)
-$stmt = $pdo->prepare("SELECT * FROM tasks WHERE user_id=? ORDER BY due_at ASC LIMIT 50");
+$stmt = $pdo->prepare("SELECT * FROM tasks WHERE user_id=? ORDER BY due_date ASC LIMIT 50");
 $stmt->execute([$user['id']]);
 $tasks = $stmt->fetchAll();
 
@@ -48,7 +63,7 @@ include __DIR__ . '/../includes/layout/header.php';
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-2xl sm:text-3xl font-bold mb-2">Welcome back, <?php echo h($user['name']); ?>! 👋</h1>
+                    <h1 class="text-2xl sm:text-3xl font-bold mb-2">Welcome back, <?php echo h($user['first_name'] . ' ' . $user['last_name']); ?>! 👋</h1>
                     <p class="text-blue-100 text-sm sm:text-base">Let's tackle your priorities today</p>
                 </div>
             </div>
@@ -272,13 +287,13 @@ include __DIR__ . '/../includes/layout/header.php';
                                     </div>
                                     <h4 class="font-medium text-gray-900 mb-1 text-sm sm:text-base truncate"><?php echo h($task['title']); ?></h4>
                                     <div class="text-xs sm:text-sm text-gray-600">
-                                        <?php echo format_due_date($task['due_at']); ?>
+                                        <?php echo format_due_date($task['due_date']); ?>
                                         <?php if ($task['estimated_minutes']): ?>
                                             • <?php echo $task['estimated_minutes']; ?> min
                                         <?php endif; ?>
                                     </div>
                                 </div>
-                                <?php if (!$task['completed']): ?>
+                                <?php if ($task['status'] !== 'completed'): ?>
                                     <form method="post" action="<?php echo APP_URL; ?>/tasks.php" class="ml-2 sm:ml-3 flex-shrink-0">
                                         <input type="hidden" name="complete_task_id" value="<?php echo $task['id']; ?>">
                                         <input type="hidden" name="csrf" value="<?php echo csrf_token(); ?>">

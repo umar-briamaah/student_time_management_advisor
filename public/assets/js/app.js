@@ -8,29 +8,52 @@
 
     // Main Application Class
     class StudentTimeAdvisor {
-  constructor() {
-    this.init();
-    this.state = {
-      isLoading: false,
-      currentTheme: 'light',
-      notifications: [],
-      modals: new Set()
-    };
-  }
+        constructor() {
+            this.state = {
+                isLoading: false,
+                currentTheme: 'light',
+                notifications: [],
+                modals: new Map()
+            };
+            this.init();
+        }
 
-  init() {
-    this.setupEventListeners();
-    this.initializeComponents();
-    this.setupPerformanceMonitoring();
-    this.setupThemeDetection();
-    this.setupIntersectionObserver();
-  }
+        init() {
+            // Ensure state is properly initialized
+            if (!this.state) {
+                this.state = {
+                    isLoading: false,
+                    currentTheme: 'light',
+                    notifications: [],
+                    modals: new Map()
+                };
+            }
+            
+            this.setupEventListeners();
+            this.initializeComponents();
+            this.setupPerformanceMonitoring();
+            this.setupThemeDetection();
+            this.setupIntersectionObserver();
+        }
 
         setupEventListeners() {
             document.addEventListener('DOMContentLoaded', this.onDOMReady.bind(this));
             window.addEventListener('resize', this.debounce(this.onResize.bind(this), 250));
             document.addEventListener('submit', this.handleFormSubmit.bind(this));
             document.addEventListener('click', this.handleModalClicks.bind(this));
+        }
+
+        // Utility method for debouncing
+        debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
         }
 
         initializeComponents() {
@@ -43,14 +66,17 @@
 
         // Modal Management
         initializeModals() {
-            this.modals = new Map();
+            // Initialize modals in state if not already done
+            if (!this.state.modals) {
+                this.state.modals = new Map();
+            }
             
             document.querySelectorAll('[data-modal]').forEach(trigger => {
                 const modalId = trigger.dataset.modal;
                 const modal = document.getElementById(modalId);
                 
                 if (modal) {
-                    this.modals.set(modalId, { element: modal, trigger: trigger });
+                    this.state.modals.set(modalId, { element: modal, trigger: trigger });
                     trigger.addEventListener('click', (e) => {
                         e.preventDefault();
                         this.openModal(modalId);
@@ -60,7 +86,7 @@
         }
 
         openModal(modalId) {
-            const modalData = this.modals.get(modalId);
+            const modalData = this.state.modals.get(modalId);
             if (!modalData) return;
 
             const modal = modalData.element;
@@ -74,7 +100,7 @@
         }
 
         closeModal(modalId) {
-            const modalData = this.modals.get(modalId);
+            const modalData = this.state.modals.get(modalId);
             if (!modalData) return;
 
             const modal = modalData.element;
@@ -236,17 +262,17 @@
         }
 
         // Utility Functions
-        debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
+        // debounce(func, wait) {
+        //     let timeout;
+        //     return function executedFunction(...args) {
+        //         const later = () => {
+        //             clearTimeout(timeout);
+        //             func(...args);
+        //         };
+        //         clearTimeout(timeout);
+        //         timeout = setTimeout(later, wait);
+        //     };
+        // }
 
         // Event Handlers
         onDOMReady() {
@@ -292,20 +318,69 @@
                 window.addEventListener('load', () => {
                     setTimeout(() => {
                         this.logPerformanceMetrics();
-                    }, 0);
+                    }, 100); // Small delay to ensure all metrics are available
                 });
             }
         }
 
         logPerformanceMetrics() {
-            const navigation = performance.getEntriesByType('navigation')[0];
-            console.log('Page Load Time:', navigation.loadEventEnd - navigation.loadEventStart);
+            try {
+                const navigation = performance.getEntriesByType('navigation')[0];
+                if (navigation) {
+                    // Total page load time (from start to load complete)
+                    const totalLoadTime = navigation.loadEventEnd - navigation.navigationStart;
+                    
+                    // DOM content loaded time
+                    const domContentLoaded = navigation.domContentLoadedEventEnd - navigation.navigationStart;
+                    
+                    // Time to first byte
+                    const ttfb = navigation.responseStart - navigation.requestStart;
+                    
+                    // Resource loading time
+                    const resourceLoadTime = navigation.loadEventEnd - navigation.responseEnd;
+                    
+                    console.log('📊 Performance Metrics:');
+                    console.log(`   Total Load Time: ${totalLoadTime.toFixed(2)}ms`);
+                    console.log(`   DOM Ready: ${domContentLoaded.toFixed(2)}ms`);
+                    console.log(`   Time to First Byte: ${ttfb.toFixed(2)}ms`);
+                    console.log(`   Resource Loading: ${resourceLoadTime.toFixed(2)}ms`);
+                    
+                    // Log to page if debug mode is enabled
+                    if (window.location.search.includes('debug=true')) {
+                        this.displayPerformanceOnPage(totalLoadTime, domContentLoaded, ttfb);
+                    }
+                }
+            } catch (error) {
+                console.log('Performance metrics unavailable:', error.message);
+            }
+        }
+
+        displayPerformanceOnPage(totalLoad, domReady, ttfb) {
+            const perfDiv = document.createElement('div');
+            perfDiv.style.cssText = `
+                position: fixed; top: 10px; right: 10px; 
+                background: rgba(0,0,0,0.8); color: white; 
+                padding: 15px; border-radius: 8px; font-family: monospace; 
+                font-size: 12px; z-index: 9999; max-width: 250px;
+            `;
+            perfDiv.innerHTML = `
+                <div style="margin-bottom: 10px; font-weight: bold;">🚀 Performance</div>
+                <div>Total: ${totalLoad.toFixed(0)}ms</div>
+                <div>DOM: ${domReady.toFixed(0)}ms</div>
+                <div>TTFB: ${ttfb.toFixed(0)}ms</div>
+                <button onclick="this.parentElement.remove()" style="margin-top: 10px; padding: 5px 10px; background: #666; border: none; color: white; border-radius: 4px; cursor: pointer;">×</button>
+            `;
+            document.body.appendChild(perfDiv);
         }
 
         setupThemeDetection() {
-            // Detect system theme preference
+            // Ensure state is initialized
+            if (!this.state) {
+                this.state = { currentTheme: 'light' };
+            }
+            
+            // Check for system theme preference
             const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-            this.state = this.state || {};
             this.state.currentTheme = mediaQuery.matches ? 'dark' : 'light';
             
             // Listen for theme changes
@@ -315,9 +390,49 @@
             });
         }
 
+        setupIntersectionObserver() {
+            // Check if IntersectionObserver is supported
+            if ('IntersectionObserver' in window) {
+                // Lazy loading for images
+                const imageObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const img = entry.target;
+                            if (img.dataset.src) {
+                                img.src = img.dataset.src;
+                                img.classList.remove('lazy');
+                                observer.unobserve(img);
+                            }
+                        }
+                    });
+                });
+
+                // Observe all lazy images
+                document.querySelectorAll('img[data-src]').forEach(img => {
+                    imageObserver.observe(img);
+                });
+
+                // Animation on scroll
+                const animationObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('animate-in');
+                        }
+                    });
+                }, { threshold: 0.1 });
+
+                // Observe elements with animation classes
+                document.querySelectorAll('.animate-on-scroll').forEach(el => {
+                    animationObserver.observe(el);
+                });
+            }
+        }
+
         updateTheme() {
-            document.documentElement.setAttribute('data-theme', this.state.currentTheme);
-            // Add theme-specific classes or update CSS variables
+            if (this.state && this.state.currentTheme) {
+                document.documentElement.setAttribute('data-theme', this.state.currentTheme);
+                // Add theme-specific classes or update CSS variables
+            }
         }
 
         // Modern loading state management

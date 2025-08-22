@@ -4,6 +4,11 @@ require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/password_utils.php';
 
+// Start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $errors = [];
 $password_strength = 0;
 $password_feedback = [];
@@ -32,8 +37,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = 'Email already registered';
         } else {
             $hash = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("INSERT INTO users (name, email, password_hash) VALUES (?,?,?)");
-            $stmt->execute([$name, $email, $hash]);
+            // Split name into first and last name, use email as username
+            $name_parts = explode(' ', $name, 2);
+            $first_name = $name_parts[0];
+            $last_name = isset($name_parts[1]) ? $name_parts[1] : '';
+            $username = strtolower(str_replace(['@', '.'], '', $email));
+            
+            $stmt = $pdo->prepare("INSERT INTO users (username, first_name, last_name, email, password) VALUES (?,?,?,?,?)");
+            $stmt->execute([$username, $first_name, $last_name, $email, $hash]);
             
             $user_id = $pdo->lastInsertId();
             
@@ -56,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             
-            header('Location: ' . APP_URL . '/dashboard.php');
+            header('Location: /dashboard.php');
             exit;
         }
     }
@@ -98,8 +109,9 @@ include __DIR__ . '/../includes/layout/header.php';
         
         <!-- Name Field -->
         <div class="form-group">
-            <label class="form-label">Full Name</label>
+            <label for="name" class="form-label">Full Name</label>
             <input 
+                id="name"
                 class="form-control" 
                 name="name" 
                 placeholder="Enter your full name" 
@@ -111,8 +123,9 @@ include __DIR__ . '/../includes/layout/header.php';
         
         <!-- Email Field -->
         <div class="form-group">
-            <label class="form-label">Email Address</label>
+            <label for="email" class="form-label">Email Address</label>
             <input 
+                id="email"
                 class="form-control" 
                 type="email" 
                 name="email" 
@@ -125,13 +138,13 @@ include __DIR__ . '/../includes/layout/header.php';
         
         <!-- Password Field -->
         <div class="form-group">
-            <label class="form-label">Password</label>
+            <label for="password" class="form-label">Password</label>
             <div class="relative">
                 <input 
+                    id="password"
                     class="form-control pr-12" 
                     type="password" 
                     name="password" 
-                    id="password"
                     placeholder="Create a strong password" 
                     required
                     autocomplete="new-password"
@@ -164,13 +177,13 @@ include __DIR__ . '/../includes/layout/header.php';
         
         <!-- Password Confirmation Field -->
         <div class="form-group">
-            <label class="form-label">Confirm Password</label>
+            <label for="passwordConfirm" class="form-label">Confirm Password</label>
             <div class="relative">
                 <input 
+                    id="passwordConfirm"
                     class="form-control pr-12" 
                     type="password" 
                     name="password_confirm" 
-                    id="passwordConfirm"
                     placeholder="Confirm your password" 
                     required
                     autocomplete="new-password"

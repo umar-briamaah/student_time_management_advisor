@@ -4,17 +4,29 @@ require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 
-// Ensure APP_URL is defined
-if (!defined('APP_URL')) {
-    define('APP_URL', 'http://localhost/student-time-advisor-php/public');
+// Start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
-require_login();
+// Check authentication
+if (!is_logged_in()) {
+    header('Location: /login.php');
+    exit();
+}
+
 $user = current_user();
+if (!$user) {
+    // User data not found, clear session and redirect to login
+    session_destroy();
+    header('Location: /login.php');
+    exit();
+}
+
 $pdo = DB::conn();
 
 // Get tasks for calendar
-$stmt = $pdo->prepare("SELECT * FROM tasks WHERE user_id = ? ORDER BY due_at ASC");
+$stmt = $pdo->prepare("SELECT * FROM tasks WHERE user_id = ? ORDER BY due_date ASC");
 $stmt->execute([$user['id']]);
 $tasks = $stmt->fetchAll();
 
@@ -33,15 +45,15 @@ foreach ($tasks as $task) {
     $calendar_events[] = [
         'id' => $task['id'],
         'title' => $task['title'],
-        'start' => $task['due_at'],
-        'end' => date('Y-m-d H:i:s', strtotime($task['due_at'] . ' +' . $task['estimated_minutes'] . ' minutes')),
+        'start' => $task['due_date'],
+        'end' => date('Y-m-d H:i:s', strtotime($task['due_date'] . ' +' . $task['estimated_minutes'] . ' minutes')),
         'backgroundColor' => $color,
         'borderColor' => $color,
         'textColor' => '#ffffff',
         'extendedProps' => [
             'category' => $task['category'],
             'description' => $task['description'],
-            'completed' => $task['completed'],
+            'status' => $task['status'],
             'estimated_minutes' => $task['estimated_minutes']
         ]
     ];
@@ -133,15 +145,15 @@ include __DIR__ . '/../includes/layout/header.php';
                 <input type="hidden" name="csrf" value="<?php echo csrf_token(); ?>">
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Task Title *</label>
-                    <input type="text" name="title" required 
+                    <label for="calendar_task_title" class="block text-sm font-medium text-gray-700 mb-1">Task Title *</label>
+                    <input type="text" name="title" id="calendar_task_title" required 
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                            placeholder="Enter task title">
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                    <select name="category" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <label for="calendar_task_category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <select name="category" id="calendar_task_category" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <option value="Lecture">Lecture</option>
                         <option value="Lab">Lab</option>
                         <option value="Exam">Exam</option>
@@ -151,15 +163,15 @@ include __DIR__ . '/../includes/layout/header.php';
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                    <textarea name="description" rows="3" 
+                    <label for="calendar_task_description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea name="description" id="calendar_task_description" rows="3" 
                               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                               placeholder="Task description (optional)"></textarea>
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Due Date & Time *</label>
-                    <input type="datetime-local" name="due_at" required 
+                    <label for="calendar_task_due_at" class="block text-sm font-medium text-gray-700 mb-1">Due Date & Time *</label>
+                    <input type="datetime-local" name="due_at" id="calendar_task_due_at" required 
                            value="<?php echo date('Y-m-d\TH:i', strtotime('+1 day')); ?>"
                            min="<?php echo date('Y-m-d\TH:i'); ?>"
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
@@ -167,8 +179,8 @@ include __DIR__ . '/../includes/layout/header.php';
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Estimated Minutes</label>
-                    <input type="number" name="estimated_minutes" value="60" min="15" step="15"
+                    <label for="calendar_task_estimated_minutes" class="block text-sm font-medium text-gray-700 mb-1">Estimated Minutes</label>
+                    <input type="number" name="estimated_minutes" id="calendar_task_estimated_minutes" value="60" min="15" step="15"
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 </div>
                 
@@ -304,7 +316,7 @@ function showTaskDetails(event) {
     `;
     
     // Show/hide complete button based on completion status
-    if (task.extendedProps.completed) {
+    if (task.extendedProps.status === 'completed') {
         completeBtn.style.display = 'none';
     } else {
         completeBtn.style.display = 'block';

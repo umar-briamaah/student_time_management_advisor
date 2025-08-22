@@ -50,18 +50,32 @@ A modern, feature-rich web application for students to manage their academic tas
 
 ### 1. **Database Setup**
 
-```sql
-CREATE DATABASE IF NOT EXISTS student_time_advisor CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE student_time_advisor;
-SOURCE sql/schema.sql;
-SOURCE sql/seed.sql; -- Optional demo data
+```bash
+# Start MariaDB/MySQL service
+sudo systemctl start mariadb
+
+# Access as root
+sudo mysql -u root -p
+
+# Create database and user
+CREATE DATABASE student_time_advisor CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'dev_user'@'localhost' IDENTIFIED BY '';
+GRANT ALL PRIVILEGES ON student_time_advisor.* TO 'dev_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+
+# Import the complete schema
+mysql -u root -p < sql/database_updated.sql
 ```
 
 ### 2. **Environment Configuration**
 
 ```bash
 # Copy the example environment file
-cp .env.example .env
+cp env.example.complete .env
+
+# Generate secure secrets
+php generate_secrets.php
 
 # Edit with your database and mail settings
 nano .env
@@ -73,11 +87,20 @@ nano .env
 # Database
 DB_HOST=localhost
 DB_NAME=student_time_advisor
-DB_USER=root
-DB_PASS=your_password
+DB_USER=dev_user
+DB_PASS=
 
 # Application
-APP_URL=http://localhost/student-time-advisor-php/public
+APP_URL=http://localhost:8000
+DEBUG=true
+ENVIRONMENT=development
+
+# Security (generate using generate_secrets.php)
+CSRF_SECRET=your-generated-secret
+SESSION_SECRET=your-generated-secret
+API_KEY=your-generated-secret
+JWT_SECRET=your-generated-secret
+ENCRYPTION_KEY=your-generated-secret
 
 # Mail (for reminders)
 MAIL_HOST=smtp.gmail.com
@@ -86,264 +109,200 @@ MAIL_USER=your-email@gmail.com
 MAIL_PASS=your-app-password
 MAIL_FROM=your-email@gmail.com
 MAIL_FROM_NAME=Student Time Advisor
+MAIL_ENCRYPTION=tls
 ```
 
 ### 3. **Dependencies Installation**
 
 ```bash
+# Install Node.js dependencies for Tailwind CSS
+npm install
+
 # Install PHPMailer via Composer
-composer require phpmailer/phpmailer
-
-# Or manually download and place in vendor/ directory
+composer install
 ```
 
-### 4. **Web Server Configuration**
-
-Point your web server's document root to the `public/` directory.
-
-**Apache Example:**
-
-```apache
-<VirtualHost *:80>
-    DocumentRoot /path/to/student-time-advisor-php/public
-    ServerName student-time-advisor.local
-    
-    <Directory /path/to/student-time-advisor-php/public>
-        AllowOverride All
-        Require all granted
-    </Directory>
-</VirtualHost>
-```
-
-**Nginx Example:**
-
-```nginx
-server {
-    listen 80;
-    server_name student-time-advisor.local;
-    root /path/to/student-time-advisor-php/public;
-    index index.php;
-    
-    location / {
-        try_files $uri $uri/ /index.php?$query_string;
-    }
-    
-    location ~ \.php$ {
-        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
-        fastcgi_index index.php;
-        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
-        include fastcgi_params;
-    }
-}
-```
-
-### 5. **Cron Job Setup**
+### 4. **CSS Build**
 
 ```bash
-# Edit crontab
-crontab -e
+# Build production CSS
+./build-css.sh
 
-# Add these lines:
-# Send reminders every 15 minutes
-*/15 * * * * php /path/to/student-time-advisor-php/cron/send_reminders.php >> /var/log/sta_reminders.log 2>&1
-
-# Calculate streaks daily at 00:10
-10 0 * * * php /path/to/student-time-advisor-php/cron/calculate_streaks.php >> /var/log/sta_streaks.log 2>&1
+# Or for development (watch mode)
+./dev-css.sh
 ```
 
-## 🧠 **Priority Algorithm**
+### 5. **Start Development Server**
 
-The system uses a sophisticated algorithm to rank tasks by importance:
-
-```php
-function priority_score($task) {
-    $days_left = (due_at - now) in days;
-    
-    // Base score based on urgency
-    $base = ($days_left <= 2) ? 100 : (($days_left <= 7) ? 60 : 30);
-    
-    // Category weight multiplier
-    $weight = category_weight($task['category']);
-    // Exam: 1.0, Assignment: 0.8, Lab: 0.7, Lecture: 0.5, Other: 0.3
-    
-    // Progress factor (incomplete tasks rank higher)
-    $progress_factor = $task['completed'] ? 0 : 1;
-    
-    return $base * $weight * $progress_factor;
-}
+```bash
+# Start from the public directory
+cd public
+php -S localhost:8000
 ```
 
-## 🏆 **Badge System**
+## 🏗️ Architecture
 
-| Badge | Requirement | Description |
-|-------|-------------|-------------|
-| 🎯 First Task | Complete 1 task | Get started with your first completion |
-| 🔥 3-Day Streak | 3 consecutive days | Build momentum with consistency |
-| 🔥 7-Day Streak | 7 consecutive days | Weekly habit formation |
-| ⚡ 14-Day Streak | 14 consecutive days | Bi-weekly excellence |
-| ⚡ 21-Day Streak | 21 consecutive days | Three-week mastery |
-| 👑 30-Day Streak | 30 consecutive days | Monthly achievement |
-| ⏰ On-Time | Complete before due | Timeliness excellence |
-| 🎯 Deep Focus | 120+ min in a day | Extended focus achievement |
+### **Frontend**
 
-## 📧 **Email Reminders**
+- **Tailwind CSS**: Modern, utility-first CSS framework
+- **Vanilla JavaScript**: No heavy frameworks, fast and lightweight
+- **Responsive Design**: Mobile-first approach
 
-The system automatically sends beautiful HTML emails:
+### **Backend**
 
-- **T-48h**: Early warning reminder
-- **T-12h**: Final reminder before due
-- **Professional templates** with task details and time remaining
-- **Category-based styling** for visual appeal
+- **PHP 8.0+**: Modern PHP with type hints and features
+- **PDO**: Secure database connections
+- **PHPMailer**: Professional email handling
+- **Session Management**: Secure user authentication
 
-## 🔧 **Technical Details**
+### **Database**
 
-### **Security Features**
+- **MySQL/MariaDB**: Reliable relational database
+- **Optimized Schema**: Proper indexing and relationships
+- **Data Integrity**: Foreign keys and constraints
 
-- PDO prepared statements (SQL injection protection)
-- Password hashing with bcrypt/argon2
-- CSRF token protection on all forms
-- Input validation and output escaping
-- Session-based authentication
-
-### **Performance Optimizations**
-
-- Database indexes on frequently queried columns
-- Efficient queries with proper JOINs
-- Caching of user statistics
-- Optimized badge calculations
-
-### **File Structure**
+## 📁 Project Structure
 
 ``` text
 student_time_management_advisor/
-├── cron/                    # Automated tasks
-│   ├── calculate_streaks.php
-│   └── send_reminders.php
-├── includes/                # Core functionality
-│   ├── auth.php            # Authentication
-│   ├── config.php          # Configuration
-│   ├── db.php             # Database connection
-│   ├── functions.php       # Helper functions
-│   ├── mailer.php         # Email functionality
-│   └── layout/            # UI components
 ├── public/                 # Web-accessible files
 │   ├── assets/            # CSS, JS, images
-│   ├── dashboard.php      # Main dashboard
-│   ├── tasks.php          # Task management
-│   ├── calendar.php       # Calendar view
-│   ├── motivation.php     # Badges and streaks
-│   └── reports.php        # Analytics
-├── sql/                   # Database files
-│   ├── schema.sql         # Table structure
-│   └── seed.sql           # Sample data
-└── vendor/                # Composer dependencies
+│   ├── *.php             # Main application pages
+│   └── .htaccess         # Apache configuration
+├── includes/              # PHP includes
+│   ├── config.php        # Configuration and environment
+│   ├── db.php           # Database connection
+│   ├── auth.php         # Authentication
+│   ├── functions.php    # Helper functions
+│   ├── mailer.php       # Email system
+│   └── security.php     # Security features
+├── cron/                 # Scheduled tasks
+│   ├── send_reminders.php
+│   └── calculate_streaks.php
+├── sql/                  # Database schema
+│   └── database_updated.sql
+├── src/                  # Tailwind source CSS
+├── vendor/               # Composer dependencies
+└── node_modules/         # Node.js dependencies
 ```
 
-## 🌟 **Usage Tips**
+## 🔧 Development
 
-### **Getting Started**
+### **CSS Development**
 
-1. **Create your first task** - Start with something simple
-2. **Set realistic due dates** - Don't overwhelm yourself
-3. **Use categories** - Organize by academic type
-4. **Check the dashboard** - See your priorities at a glance
+```bash
+# Watch for changes
+npm run dev
 
-### **Maintaining Streaks**
+# Build for production
+npm run build
+```
 
-1. **Complete at least one task daily** - Even small wins count
-2. **Plan ahead** - Create tasks for tomorrow today
-3. **Use the calendar** - Visual planning helps consistency
-4. **Check motivation page** - Track your achievements
+### **Database Changes**
 
-### **Maximizing Productivity**
+```bash
+# Export current schema
+mysqldump -u dev_user student_time_advisor > sql/backup.sql
 
-1. **Focus on high-priority tasks** - Use the priority algorithm
-2. **Break down large tasks** - Smaller pieces are more manageable
-3. **Set time estimates** - Helps with planning
-4. **Review reports regularly** - Identify patterns and improve
+# Import updated schema
+mysql -u dev_user student_time_advisor < sql/database_updated.sql
+```
 
-## 🐛 **Troubleshooting**
+### **Testing**
+
+```bash
+# Test database connection
+php -r "require_once 'includes/config.php'; require_once 'includes/db.php'; DB::conn(); echo 'Connection successful!';"
+
+# Test email system
+# Visit /email_test.php after login
+```
+
+## 🚀 Production Deployment
+
+### **Environment Setup**
+
+```bash
+# Set production environment
+ENVIRONMENT=production
+DEBUG=false
+
+# Use strong secrets
+# Generate new secrets for production
+php generate_secrets.php
+```
+
+### **Web Server**
+
+- **Apache**: Use provided .htaccess
+- **Nginx**: Configure for PHP-FPM
+- **HTTPS**: Enable SSL/TLS
+
+### **Cron Jobs**
+
+```bash
+# Add to crontab
+# Send reminders every 15 minutes
+*/15 * * * * php /path/to/cron/send_reminders.php
+
+# Calculate streaks daily at 00:10
+10 0 * * * php /path/to/cron/calculate_streaks.php
+```
+
+## 🐛 Troubleshooting
 
 ### **Common Issues**
 
-## **Database Connection Error**
+1. **Database Connection Failed**
+   - Check MariaDB service: `sudo systemctl status mariadb`
+   - Verify credentials in `.env`
+   - Test connection: `mysql -u dev_user -p`
 
-- Verify database credentials in `.env`
-- Ensure MySQL/MariaDB is running
-- Check database exists and is accessible
+2. **Navigation Not Working**
+   - Ensure server is running from `public/` directory
+   - Check `APP_URL` in `.env`
+   - Clear browser cache
 
-## **Email Not Sending**
+3. **CSS Not Loading**
+   - Run `npm run build` to generate CSS
+   - Check file permissions on `public/assets/css/`
 
-- Verify SMTP settings in `.env`
-- Check firewall/port restrictions
-- Use app passwords for Gmail
+4. **Email Not Sending**
+   - Verify SMTP settings in `.env`
+   - Check PHPMailer installation
+   - Test with `/email_test.php`
 
-## **Cron Jobs Not Working**
+### **Debug Mode**
 
-- Verify cron service is running
-- Check file permissions
-- Review log files for errors
+```bash
+# Enable debug mode in .env
+DEBUG=true
 
-## **Page Not Loading**
+# Check error logs
+tail -f /var/log/apache2/error.log
+```
 
-- Ensure web server points to `public/` directory
-- Check PHP version (7.4+ recommended)
-- Verify `.htaccess` is present
-
-### **Log Files**
-
-- **Reminders**: `/var/log/sta_reminders.log`
-- **Streaks**: `/var/log/sta_streaks.log`
-- **Web errors**: Check web server error logs
-
-## 🔄 **Updates & Maintenance**
-
-### **Regular Maintenance**
-
-- **Database backups**: Weekly automated backups recommended
-- **Log rotation**: Implement log rotation for cron logs
-- **Security updates**: Keep PHP and dependencies updated
-- **Performance monitoring**: Monitor database query performance
-
-### **Scaling Considerations**
-
-- **Database optimization**: Add indexes for large datasets
-- **Caching**: Implement Redis/Memcached for high traffic
-- **Load balancing**: Multiple web servers for high availability
-- **CDN**: Use CDN for static assets
-
-## 📚 **API & Extensions**
-
-The system is designed to be extensible:
-
-- **REST API endpoints** can be added for mobile apps
-- **Webhook support** for external integrations
-- **Plugin system** for additional features
-- **Custom themes** for branding
-
-## 🤝 **Contributing**
-
-Contributions are welcome! Areas for improvement:
-
-- **Mobile app development**
-- **Additional analytics**
-- **Integration with LMS systems**
-- **Advanced notification systems**
-- **Performance optimizations**
-
-## 📄 **License**
+## 📝 License
 
 This project is open source and available under the MIT License.
 
-## 🆘 **Support**
+## 🤝 Contributing
 
-For support and questions:
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
-- **Documentation**: Check this README first
-- **Issues**: Report bugs via GitHub issues
-- **Community**: Join our discussion forum
-- **Email**: Contact the development team
+## 📞 Support
+
+For issues and questions:
+
+- Check the troubleshooting section
+- Review error logs
+- Test with debug mode enabled
+- Ensure all dependencies are installed
 
 ---
 
-**Built with ❤️ for students who want to excel in their academic journey.**
+**Built with ❤️ for students who want to manage their time effectively!**

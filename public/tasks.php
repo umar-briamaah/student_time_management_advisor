@@ -4,10 +4,25 @@ require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 
-// APP_URL should be defined in config.php
+// Start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-require_login();
+// Check authentication
+if (!is_logged_in()) {
+    header('Location: /login.php');
+    exit();
+}
+
 $user = current_user();
+if (!$user) {
+    // User data not found, clear session and redirect to login
+    session_destroy();
+    header('Location: /login.php');
+    exit();
+}
+
 $pdo = DB::conn();
 $errors = [];
 $success_message = '';
@@ -25,10 +40,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['complete_task_id'])) 
         $errors[] = 'Invalid CSRF token'; 
     } else {
         $tid = (int)$_POST['complete_task_id'];
-        $stmt = $pdo->prepare("UPDATE tasks SET completed=1, completed_at=NOW() WHERE id=? AND user_id=?");
+        $stmt = $pdo->prepare("UPDATE tasks SET status='completed', completed_at=NOW() WHERE id=? AND user_id=?");
         if ($stmt->execute([$tid, $user['id']])) {
             // Award first task badge if applicable
-            $count = $pdo->prepare("SELECT COUNT(*) c FROM tasks WHERE user_id=? AND completed=1");
+            $count = $pdo->prepare("SELECT COUNT(*) c FROM tasks WHERE user_id=? AND status='completed'");
             $count->execute([$user['id']]);
             if (($count->fetch()['c'] ?? 0) == 1) {
                 award_badge_if_needed($user['id'], 'FIRST_TASK');
@@ -63,14 +78,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create'])) {
         $task_data = [
             'title' => trim($_POST['title'] ?? ''),
             'category' => $_POST['category'] ?? 'Other',
-            'due_at' => $_POST['due_at'] ?? '',
+            'due_date' => $_POST['due_date'] ?? '',
             'description' => trim($_POST['description'] ?? ''),
             'estimated_minutes' => (int)($_POST['estimated_minutes'] ?? 60)
         ];
         
         // Validate datetime format
-        if (!empty($task_data['due_at'])) {
-            $due_datetime = DateTime::createFromFormat('Y-m-d\TH:i', $task_data['due_at']);
+        if (!empty($task_data['due_date'])) {
+            $due_datetime = DateTime::createFromFormat('Y-m-d\TH:i', $task_data['due_date']);
             if ($due_datetime === false) {
                 $errors[] = 'Invalid date and time format. Please select a valid date and time.';
             } else {
@@ -79,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create'])) {
                     $errors[] = 'Due date and time must be in the future.';
                 } else {
                     // Format the datetime properly for database
-                    $task_data['due_at'] = $due_datetime->format('Y-m-d H:i:s');
+                    $task_data['due_date'] = $due_datetime->format('Y-m-d H:i:s');
                 }
             }
         } else {
@@ -94,14 +109,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create'])) {
         if (empty($errors)) {
             try {
                 // Insert task
-                $stmt = $pdo->prepare("INSERT INTO tasks (user_id,title,description,category,due_at,estimated_minutes) VALUES (?,?,?,?,?,?)");
-                $result = $stmt->execute([$user['id'], $task_data['title'], $task_data['description'], $task_data['category'], $task_data['due_at'], $task_data['estimated_minutes']]);
+                $stmt = $pdo->prepare("INSERT INTO tasks (user_id,title,description,category,due_date,estimated_minutes) VALUES (?,?,?,?,?,?)");
+                $result = $stmt->execute([$user['id'], $task_data['title'], $task_data['description'], $task_data['category'], $task_data['due_date'], $task_data['estimated_minutes']]);
                 
                 if ($result) {
                     // Schedule reminders T-48h and T-12h
                     $tid = $pdo->lastInsertId();
                     
-                    $due = new DateTime($task_data['due_at']);
+                    $due = new DateTime($task_data['due_date']);
                     foreach([48,12] as $h){
                         $send = (clone $due)->modify("-{$h} hours")->format('Y-m-d H:i:s');
                         if (strtotime($send) > time()) {
@@ -135,14 +150,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_task'])) {
             'id' => (int)($_POST['task_id'] ?? 0),
             'title' => trim($_POST['title'] ?? ''),
             'category' => $_POST['category'] ?? 'Other',
-            'due_at' => $_POST['due_at'] ?? '',
+            'due_date' => $_POST['due_date'] ?? '',
             'description' => trim($_POST['description'] ?? ''),
             'estimated_minutes' => (int)($_POST['estimated_minutes'] ?? 60)
         ];
         
         // Validate datetime format for editing
-        if (!empty($task_data['due_at'])) {
-            $due_datetime = DateTime::createFromFormat('Y-m-d\TH:i', $task_data['due_at']);
+        if (!empty($task_data['due_date'])) {
+            $due_datetime = DateTime::createFromFormat('Y-m-d\TH:i', $task_data['due_date']);
             if ($due_datetime === false) {
                 $errors[] = 'Invalid date and time format. Please select a valid date and time.';
             } else {
@@ -151,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_task'])) {
                     $errors[] = 'Due date and time must be in the future.';
                 } else {
                     // Format the datetime properly for database
-                    $task_data['due_at'] = $due_datetime->format('Y-m-d H:i:s');
+                    $task_data['due_date'] = $due_datetime->format('Y-m-d H:i:s');
                 }
             }
         } else {
@@ -164,8 +179,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_task'])) {
         }
         
         if (empty($errors) && $task_data['id'] > 0) {
-            $stmt = $pdo->prepare("UPDATE tasks SET title=?, description=?, category=?, due_at=?, estimated_minutes=?, updated_at=NOW() WHERE id=? AND user_id=?");
-            if ($stmt->execute([$task_data['title'], $task_data['description'], $task_data['category'], $task_data['due_at'], $task_data['estimated_minutes'], $task_data['id'], $user['id']])) {
+                            $stmt = $pdo->prepare("UPDATE tasks SET title=?, description=?, category=?, due_date=?, estimated_minutes=?, updated_at=NOW() WHERE id=? AND user_id=?");
+                            if ($stmt->execute([$task_data['title'], $task_data['description'], $task_data['category'], $task_data['due_date'], $task_data['estimated_minutes'], $task_data['id'], $user['id']])) {
                 $success_message = 'Task updated successfully!';
             } else {
                 $errors[] = 'Failed to update task';
@@ -187,9 +202,9 @@ $where_conditions = ["user_id = ?"];
 $params = [$user['id']];
 
 if ($filter_status === 'pending') {
-    $where_conditions[] = "completed = 0";
+    $where_conditions[] = "status = 'pending'";
 } elseif ($filter_status === 'completed') {
-    $where_conditions[] = "completed = 1";
+    $where_conditions[] = "status = 'completed'";
 }
 
 if ($filter_category !== 'all') {
@@ -206,7 +221,7 @@ if (!empty($search)) {
 $where_clause = implode(' AND ', $where_conditions);
 
 // Fetch tasks with filters
-$stmt = $pdo->prepare("SELECT * FROM tasks WHERE $where_clause ORDER BY due_at ASC");
+$stmt = $pdo->prepare("SELECT * FROM tasks WHERE $where_clause ORDER BY due_date ASC");
 $stmt->execute($params);
 $tasks = $stmt->fetchAll();
 
@@ -295,8 +310,8 @@ include __DIR__ . '/../includes/layout/header.php';
             </div>
             
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
-                <input type="text" name="search" value="<?php echo h($search); ?>" 
+                <label for="task_search" class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                <input type="text" name="search" id="task_search" value="<?php echo h($search); ?>" 
                        placeholder="Search tasks..." 
                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
             </div>
@@ -344,14 +359,14 @@ include __DIR__ . '/../includes/layout/header.php';
             <?php else: ?>
                 <div class="space-y-4">
                     <?php foreach($tasks as $task): ?>
-                        <div class="bg-gradient-to-r from-white to-gray-50 border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 <?php echo $task['completed'] ? 'opacity-75' : ''; ?>">
+                        <div class="bg-gradient-to-r from-white to-gray-50 border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 <?php echo $task['status'] === 'completed' ? 'opacity-75' : ''; ?>">
                             <div class="flex items-start justify-between">
                                 <div class="flex-1">
                                     <div class="flex items-center gap-3 mb-2">
                                         <span class="px-3 py-1 text-xs font-medium rounded-full border <?php echo get_category_color($task['category']); ?>">
                                             <?php echo h($task['category']); ?>
                                         </span>
-                                        <?php if (!$task['completed']): ?>
+                                        <?php if ($task['status'] !== 'completed'): ?>
                                             <?php $priority = priority_score($task); ?>
                                             <?php if ($priority > 0): ?>
                                                 <span class="px-2 py-1 text-xs font-medium rounded <?php echo get_priority_color($priority); ?>">
@@ -361,7 +376,7 @@ include __DIR__ . '/../includes/layout/header.php';
                                         <?php endif; ?>
                                     </div>
                                     
-                                    <h3 class="font-medium text-gray-900 mb-2 <?php echo $task['completed'] ? 'line-through text-gray-500' : ''; ?>">
+                                    <h3 class="font-medium text-gray-900 mb-2 <?php echo $task['status'] === 'completed' ? 'line-through text-gray-500' : ''; ?>">
                                         <?php echo h($task['title']); ?>
                                     </h3>
                                     
@@ -370,7 +385,7 @@ include __DIR__ . '/../includes/layout/header.php';
                                     <?php endif; ?>
                                     
                                     <div class="flex items-center gap-4 text-sm text-gray-500">
-                                        <span><?php echo format_due_date($task['due_at']); ?></span>
+                                        <span><?php echo format_due_date($task['due_date']); ?></span>
                                         <?php if ($task['estimated_minutes']): ?>
                                             <span>• <?php echo $task['estimated_minutes']; ?> min</span>
                                         <?php endif; ?>
@@ -379,7 +394,7 @@ include __DIR__ . '/../includes/layout/header.php';
                                 </div>
                                 
                                 <div class="flex items-center gap-3 ml-4">
-                                    <?php if (!$task['completed']): ?>
+                                    <?php if ($task['status'] !== 'completed'): ?>
                                         <form method="post" class="inline">
                                             <input type="hidden" name="complete_task_id" value="<?php echo $task['id']; ?>">
                                             <input type="hidden" name="csrf" value="<?php echo csrf_token(); ?>">
@@ -452,15 +467,15 @@ include __DIR__ . '/../includes/layout/header.php';
                 <input type="hidden" name="csrf" value="<?php echo csrf_token(); ?>">
                 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Task Title *</label>
-                    <input type="text" name="title" required 
+                    <label for="task_title" class="block text-sm font-semibold text-gray-700 mb-2">Task Title *</label>
+                    <input type="text" name="title" id="task_title" required 
                            class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg"
                            placeholder="e.g., Complete Math Assignment">
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Category</label>
-                    <select name="category" class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg bg-white">
+                    <label for="task_category" class="block text-sm font-semibold text-gray-700 mb-2">Category</label>
+                    <select name="category" id="task_category" class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg bg-white">
                         <option value="Assignment" selected>📚 Assignment</option>
                         <option value="Exam">📝 Exam</option>
                         <option value="Lab">🔬 Lab</option>
@@ -470,15 +485,15 @@ include __DIR__ . '/../includes/layout/header.php';
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Description</label>
-                    <textarea name="description" rows="3" 
+                    <label for="task_description" class="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                    <textarea name="description" id="task_description" rows="3" 
                               class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
                               placeholder="Add details about your task (optional)"></textarea>
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Due Date & Time *</label>
-                    <input type="datetime-local" name="due_at" required 
+                                    <label for="task_due_date" class="block text-sm font-semibold text-gray-700 mb-2">Due Date & Time *</label>
+                <input type="datetime-local" name="due_date" id="task_due_date" required 
                            value="<?php echo date('Y-m-d\TH:i', strtotime('+1 day')); ?>"
                            min="<?php echo date('Y-m-d\TH:i'); ?>"
                            class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg">
@@ -491,8 +506,8 @@ include __DIR__ . '/../includes/layout/header.php';
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Estimated Time</label>
-                    <input type="number" name="estimated_minutes" value="60" min="15" step="15"
+                    <label for="task_estimated_minutes" class="block text-sm font-semibold text-gray-700 mb-2">Estimated Time</label>
+                    <input type="number" name="estimated_minutes" id="task_estimated_minutes" value="60" min="15" step="15"
                            class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg"
                            placeholder="60">
                     <p class="text-xs text-gray-500 mt-1">How long will this task take? (in minutes)</p>
@@ -542,13 +557,13 @@ include __DIR__ . '/../includes/layout/header.php';
                 <input type="hidden" name="task_id" id="edit_task_id">
                 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Task Title *</label>
+                    <label for="edit_title" class="block text-sm font-semibold text-gray-700 mb-2">Task Title *</label>
                     <input type="text" name="title" id="edit_title" required 
                            class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg">
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Category</label>
+                    <label for="edit_category" class="block text-sm font-semibold text-gray-700 mb-2">Category</label>
                     <select name="category" id="edit_category" class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg bg-white">
                         <option value="Assignment">📚 Assignment</option>
                         <option value="Exam">📝 Exam</option>
@@ -559,14 +574,14 @@ include __DIR__ . '/../includes/layout/header.php';
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                    <label for="edit_description" class="block text-sm font-semibold text-gray-700 mb-2">Description</label>
                     <textarea name="description" id="edit_description" rows="3" 
                               class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"></textarea>
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Due Date & Time *</label>
-                    <input type="datetime-local" name="due_at" id="edit_due_at" required 
+                                    <label for="edit_due_date" class="block text-sm font-semibold text-gray-700 mb-2">Due Date & Time *</label>
+                <input type="datetime-local" name="due_date" id="edit_due_date" required 
                            min="<?php echo date('Y-m-d\TH:i'); ?>"
                            class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg">
                     <p class="text-xs text-blue-600 mt-2 flex items-center">
@@ -578,7 +593,7 @@ include __DIR__ . '/../includes/layout/header.php';
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Estimated Time</label>
+                    <label for="edit_estimated_minutes" class="block text-sm font-semibold text-gray-700 mb-2">Estimated Time</label>
                     <input type="number" name="estimated_minutes" id="edit_estimated_minutes" min="15" step="15"
                            class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg">
                     <p class="text-xs text-gray-500 mt-1">How long will this task take? (in minutes)</p>
@@ -610,14 +625,14 @@ function editTask(task) {
     document.getElementById('edit_description').value = task.description;
     
     // Format the datetime properly for datetime-local input
-    if (task.due_at) {
-        const dueDate = new Date(task.due_at);
+            if (task.due_date) {
+            const dueDate = new Date(task.due_date);
         const year = dueDate.getFullYear();
         const month = String(dueDate.getMonth() + 1).padStart(2, '0');
         const day = String(dueDate.getDate()).padStart(2, '0');
         const hours = String(dueDate.getHours()).padStart(2, '0');
         const minutes = String(dueDate.getMinutes()).padStart(2, '0');
-        document.getElementById('edit_due_at').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+                    document.getElementById('edit_due_date').value = `${year}-${month}-${day}T${hours}:${minutes}`;
     }
     
     document.getElementById('edit_estimated_minutes').value = task.estimated_minutes;
@@ -647,7 +662,7 @@ document.addEventListener('DOMContentLoaded', function() {
         createForm.addEventListener('submit', function(e) {
             e.preventDefault(); // Prevent default form submission
             
-            const dueAt = this.querySelector('input[name="due_at"]').value;
+            const dueDate = this.querySelector('input[name="due_date"]').value;
             const title = this.querySelector('input[name="title"]').value.trim();
             const category = this.querySelector('select[name="category"]').value;
             const description = this.querySelector('textarea[name="description"]').value.trim();
@@ -659,12 +674,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            if (!dueAt) {
+            if (!dueDate) {
                 showNotification('Please select a due date and time.', 'error');
                 return;
             }
             
-            const selectedDate = new Date(dueAt);
+            const selectedDate = new Date(dueDate);
             const now = new Date();
             
             if (selectedDate <= now) {
@@ -677,7 +692,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 title: title,
                 category: category,
                 description: description,
-                due_at: dueAt,
+                due_date: dueDate,
                 estimated_minutes: estimatedMinutes,
                 csrf: csrf
             };
@@ -689,7 +704,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (editForm) {
         editForm.addEventListener('submit', function(e) {
-            const dueAt = this.querySelector('input[name="due_at"]').value;
+            const dueDate = this.querySelector('input[name="due_date"]').value;
             const title = this.querySelector('input[name="title"]').value.trim();
             
             if (!title) {
@@ -698,13 +713,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            if (!dueAt) {
+            if (!dueDate) {
                 e.preventDefault();
                 showNotification('Please select a due date and time.', 'error');
                 return;
             }
             
-            const selectedDate = new Date(dueAt);
+            const selectedDate = new Date(dueDate);
             const now = new Date();
             
             if (selectedDate <= now) {
@@ -725,7 +740,7 @@ async function createTask(taskData) {
         formData.append('title', taskData.title);
         formData.append('category', taskData.category);
         formData.append('description', taskData.description);
-        formData.append('due_at', taskData.due_at);
+        formData.append('due_date', taskData.due_date);
         formData.append('estimated_minutes', taskData.estimated_minutes);
         
         const response = await fetch(window.location.href, {

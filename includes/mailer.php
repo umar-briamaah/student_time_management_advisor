@@ -54,10 +54,10 @@ class EmailSystem {
     }
     
     /**
-     * Get email configuration from database or config file
+     * Get email configuration from environment variables or database
      */
     private function getEmailConfig() {
-        // Try to get from database first
+        // Try to get from database first (for dynamic configuration)
         try {
             $stmt = $this->pdo->query("SELECT * FROM email_config LIMIT 1");
             $config = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -65,19 +65,19 @@ class EmailSystem {
                 return $config;
             }
         } catch (Exception $e) {
-            // Table doesn't exist, use default config
+            // Table doesn't exist, use environment variables
         }
         
-        // Default configuration
+        // Use environment variables with fallbacks
         return [
-            'smtp_host' => 'smtp.gmail.com',
-            'smtp_port' => 587,
-            'smtp_username' => 'your-email@gmail.com',
-            'smtp_password' => 'your-app-password',
-            'smtp_encryption' => 'tls',
-            'from_email' => 'noreply@studenttimeadvisor.com',
-            'from_name' => 'Student Time Advisor',
-            'reply_to' => 'support@studenttimeadvisor.com'
+            'smtp_host' => MAIL_HOST,
+            'smtp_port' => MAIL_PORT,
+            'smtp_username' => MAIL_USER,
+            'smtp_password' => MAIL_PASS,
+            'smtp_encryption' => MAIL_ENCRYPTION,
+            'from_email' => MAIL_FROM,
+            'from_name' => MAIL_FROM_NAME,
+            'reply_to' => MAIL_REPLY_TO
         ];
     }
     

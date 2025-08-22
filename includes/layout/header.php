@@ -9,10 +9,7 @@ require_once __DIR__ . '/../functions.php';
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Student Time Management Advisor</title>
     
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Custom CSS -->
+    <!-- Tailwind CSS - Local Build -->
     <link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/styles.css">
     
     <!-- Google Fonts -->

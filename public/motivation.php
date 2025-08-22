@@ -4,13 +4,25 @@ require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 
-// Ensure APP_URL is defined
-if (!defined('APP_URL')) {
-    define('APP_URL', 'http://localhost/student-time-advisor-php/public');
+// Start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
-require_login();
+// Check authentication
+if (!is_logged_in()) {
+    header('Location: /login.php');
+    exit();
+}
+
 $user = current_user();
+if (!$user) {
+    // User data not found, clear session and redirect to login
+    session_destroy();
+    header('Location: /login.php');
+    exit();
+}
+
 $pdo = DB::conn();
 
 // Get user data

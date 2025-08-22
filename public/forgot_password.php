@@ -3,6 +3,11 @@ require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/auth.php';
 
+// Start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $errors = [];
 $success_message = '';
 
@@ -19,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pdo = DB::conn();
                 
                 // Check if user exists
-                $stmt = $pdo->prepare("SELECT id, name FROM users WHERE email = ?");
+                $stmt = $pdo->prepare("SELECT id, first_name, last_name FROM users WHERE email = ?");
                 $stmt->execute([$email]);
                 $user = $stmt->fetch();
                 
@@ -30,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     
                     // Store reset token in database
                     $stmt = $pdo->prepare("
-                        INSERT INTO password_resets (user_id, token, expires_at) 
+                        INSERT INTO password_reset_tokens (user_id, token, expires_at) 
                         VALUES (?, ?, ?) 
                         ON DUPLICATE KEY UPDATE token = VALUES(token), expires_at = VALUES(expires_at)
                     ");
@@ -115,7 +120,7 @@ include __DIR__ . '/../includes/layout/header.php';
                 <input type="hidden" name="csrf" value="<?php echo csrf_token(); ?>">
                 
                 <div class="form-group">
-                    <label class="form-label">Email Address</label>
+                    <label for="email" class="form-label">Email Address</label>
                     <div class="relative">
                         <input 
                             class="form-control pl-10" 

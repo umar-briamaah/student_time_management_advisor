@@ -1,300 +1,159 @@
 <?php
 /**
- * Enhanced Security Functions for Student Time Management Advisor
+ * Security and middleware functions
  */
 
-// Rate limiting for API endpoints
-class RateLimiter {
-    private static $limits = [
-        'login' => ['attempts' => 5, 'window' => 300], // 5 attempts per 5 minutes
-        'register' => ['attempts' => 3, 'window' => 600], // 3 attempts per 10 minutes
-        'task_create' => ['attempts' => 20, 'window' => 300], // 20 tasks per 5 minutes
-        'api' => ['attempts' => 100, 'window' => 300] // 100 requests per 5 minutes
-    ];
+require_once __DIR__ . '/config.php';
+
+// API Key validation
+function validate_api_key($api_key) {
+    if (empty($api_key)) {
+        log_message('warning', 'API request without API key', [
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown'
+        ]);
+            return false;
+    }
     
-    public static function check($action, $identifier = null) {
-        if (!isset(self::$limits[$action])) {
-            return true; // No limit set
-        }
-        
-        $identifier = $identifier ?? ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
-        $limit = self::$limits[$action];
-        $key = "rate_limit:{$action}:{$identifier}";
-        
-        // Check if limit exceeded
-        $attempts = self::getAttempts($key);
-        if ($attempts >= $limit['attempts']) {
+    if (!hash_equals(API_KEY, $api_key)) {
+        log_message('warning', 'Invalid API key provided', [
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
+            'provided_key' => substr($api_key, 0, 8) . '...'
+        ]);
+        return false;
+    }
+    
+    log_message('info', 'API key validated successfully', [
+        'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+    ]);
+    return true;
+}
+
+// JWT Token functions
+function generate_jwt_token($payload, $expiry = 3600) {
+    $header = json_encode(['typ' => 'JWT', 'alg' => 'HS256']);
+    $payload['iat'] = time();
+    $payload['exp'] = time() + $expiry;
+    
+    $base64_header = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
+    $base64_payload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode(json_encode($payload)));
+    
+    $signature = hash_hmac('sha256', $base64_header . '.' . $base64_payload, JWT_SECRET, true);
+    $base64_signature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
+    
+    return $base64_header . '.' . $base64_payload . '.' . $base64_signature;
+}
+
+function verify_jwt_token($token) {
+    $parts = explode('.', $token);
+    if (count($parts) !== 3) {
+        return false;
+    }
+    
+    list($header, $payload, $signature) = $parts;
+    
+    $expected_signature = hash_hmac('sha256', $header . '.' . $payload, JWT_SECRET, true);
+    $expected_signature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($expected_signature));
+    
+    if (!hash_equals($signature, $expected_signature)) {
             return false;
         }
         
-        // Increment attempts
-        self::incrementAttempts($key, $limit['window']);
-        return true;
+    $payload_data = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $payload)), true);
+    
+    if ($payload_data['exp'] < time()) {
+        return false;
     }
     
-    private static function getAttempts($key) {
-        return $_SESSION['rate_limits'][$key]['count'] ?? 0;
-    }
-    
-    private static function incrementAttempts($key, $window) {
-        if (!isset($_SESSION['rate_limits'])) {
-            $_SESSION['rate_limits'] = [];
-        }
-        
-        $now = time();
-        $data = $_SESSION['rate_limits'][$key] ?? ['count' => 0, 'reset_time' => $now + $window];
-        
-        if ($now > $data['reset_time']) {
-            $data = ['count' => 1, 'reset_time' => $now + $window];
-        } else {
-            $data['count']++;
-        }
-        
-        $_SESSION['rate_limits'][$key] = $data;
-    }
+    return $payload_data;
 }
 
-// Enhanced input sanitization
-class InputSanitizer {
-    public static function sanitizeString($input, $maxLength = 255) {
-        if (!is_string($input)) return '';
+// Encryption functions
+function encrypt_data($data) {
+    $method = 'AES-256-CBC';
+    $key = hash('sha256', ENCRYPTION_KEY, true);
+    $iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length($method));
+    
+    $encrypted = openssl_encrypt($data, $method, $key, 0, $iv);
+    
+    return base64_encode($iv . $encrypted);
+}
+
+function decrypt_data($encrypted_data) {
+    $method = 'AES-256-CBC';
+    $key = hash('sha256', ENCRYPTION_KEY, true);
+    
+    $data = base64_decode($encrypted_data);
+    $iv_length = openssl_cipher_iv_length($method);
+    $iv = substr($data, 0, $iv_length);
+    $encrypted = substr($data, $iv_length);
+    
+    return openssl_decrypt($encrypted, $method, $key, 0, $iv);
+}
+
+// Rate limiting
+function check_rate_limit($identifier, $max_requests = 60, $time_window = 3600) {
+    $cache_file = sys_get_temp_dir() . '/rate_limit_' . md5($identifier);
+    $current_time = time();
+    
+    if (file_exists($cache_file)) {
+        $data = json_decode(file_get_contents($cache_file), true);
         
-        $input = trim($input);
-        $input = substr($input, 0, $maxLength);
-        $input = htmlspecialchars($input, ENT_QUOTES, 'UTF-8');
+        // Remove old entries
+        $data['requests'] = array_filter($data['requests'], function($timestamp) use ($current_time, $time_window) {
+            return $timestamp > ($current_time - $time_window);
+        });
         
-        return $input;
+        if (count($data['requests']) >= $max_requests) {
+            log_message('warning', 'Rate limit exceeded', [
+                'identifier' => $identifier,
+                'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+            ]);
+            return false;
+        }
+    } else {
+        $data = ['requests' => []];
     }
     
-    public static function sanitizeEmail($email) {
-        $email = filter_var($email, FILTER_SANITIZE_EMAIL);
-        return filter_var($email, FILTER_VALIDATE_EMAIL) ? $email : '';
-    }
+    $data['requests'][] = $current_time;
+    file_put_contents($cache_file, json_encode($data));
     
-    public static function sanitizeInteger($input, $min = null, $max = null) {
-        $input = filter_var($input, FILTER_SANITIZE_NUMBER_INT);
-        $input = (int)$input;
-        
-        if ($min !== null && $input < $min) return $min;
-        if ($max !== null && $input > $max) return $max;
-        
-        return $input;
-    }
-    
-    public static function sanitizeDate($date) {
-        $timestamp = strtotime($date);
-        return $timestamp ? date('Y-m-d H:i:s', $timestamp) : null;
-    }
-    
-    public static function sanitizeArray($array, $callback = null) {
-        if (!is_array($array)) return [];
-        
-        $callback = $callback ?? [self::class, 'sanitizeString'];
-        return array_map($callback, $array);
-    }
+    return true;
 }
 
 // Security headers
-class SecurityHeaders {
-    public static function set() {
-        // Prevent clickjacking
-        header('X-Frame-Options: DENY');
-        
-        // Prevent MIME type sniffing
-        header('X-Content-Type-Options: nosniff');
-        
-        // XSS protection
-        header('X-XSS-Protection: 1; mode=block');
-        
-        // Referrer policy
-        header('Referrer-Policy: strict-origin-when-cross-origin');
-        
-        // Content Security Policy
-        $csp = "default-src 'self'; " .
-               "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://unpkg.com https://cdn.jsdelivr.net; " .
-               "style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; " .
-               "img-src 'self' data: https:; " .
-               "font-src 'self' https://fonts.gstatic.com; " .
-               "connect-src 'self'; " .
-               "frame-ancestors 'none';";
-        
-        header("Content-Security-Policy: " . $csp);
-        
-        // Permissions Policy
-        header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+function set_security_headers() {
+    // Content Security Policy
+    $csp = "default-src 'self'; ";
+    $csp .= "script-src 'self' 'unsafe-inline'; ";
+    $csp .= "style-src 'self' 'unsafe-inline'; ";
+    $csp .= "img-src 'self' data: https:; ";
+    $csp .= "font-src 'self' data:; ";
+    $csp .= "connect-src 'self'; ";
+    $csp .= "frame-ancestors 'none';";
+    
+    header("Content-Security-Policy: " . $csp);
+    
+    // Other security headers
+    header("X-Content-Type-Options: nosniff");
+    header("X-Frame-Options: DENY");
+    header("X-XSS-Protection: 1; mode=block");
+    header("Referrer-Policy: strict-origin-when-cross-origin");
+    header("Permissions-Policy: geolocation=(), microphone=(), camera=()");
+    
+    // HSTS for HTTPS
+    if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
+        header("Strict-Transport-Security: max-age=31536000; includeSubDomains");
     }
 }
 
-// CSRF protection enhancement
-class CSRFProtection {
-    private static $tokenLength = 32;
-    
-    public static function generateToken() {
-        if (empty($_SESSION['csrf'])) {
-            $_SESSION['csrf'] = bin2hex(random_bytes(self::$tokenLength));
-        }
-        return $_SESSION['csrf'];
-    }
-    
-    public static function verifyToken($token) {
-        if (empty($_SESSION['csrf']) || empty($token)) {
-            return false;
-        }
-        
-        return hash_equals($_SESSION['csrf'], $token);
-    }
-    
-    public static function regenerateToken() {
-        $_SESSION['csrf'] = bin2hex(random_bytes(self::$tokenLength));
-        return $_SESSION['csrf'];
-    }
-    
-    public static function getTokenField() {
-        $token = self::generateToken();
-        return '<input type="hidden" name="csrf" value="' . htmlspecialchars($token) . '">';
-    }
-}
-
-// Session security
-class SessionSecurity {
-    public static function secure() {
-        // Set secure session parameters
-        ini_set('session.cookie_httponly', 1);
-        ini_set('session.cookie_secure', isset($_SERVER['HTTPS']));
-        ini_set('session.cookie_samesite', 'Strict');
-        ini_set('session.use_strict_mode', 1);
-        
-        // Regenerate session ID periodically
-        if (!isset($_SESSION['last_regeneration'])) {
-            $_SESSION['last_regeneration'] = time();
-        } elseif (time() - $_SESSION['last_regeneration'] > 300) { // 5 minutes
-            session_regenerate_id(true);
-            $_SESSION['last_regeneration'] = time();
-        }
-    }
-    
-    public static function validate() {
-        // Check for session hijacking
-        if (isset($_SESSION['user_agent']) && $_SESSION['user_agent'] !== ($_SERVER['HTTP_USER_AGENT'] ?? '')) {
-            session_destroy();
-            return false;
-        }
-        
-        // Store user agent if not set
-        if (!isset($_SESSION['user_agent'])) {
-            $_SESSION['user_agent'] = $_SERVER['HTTP_USER_AGENT'] ?? '';
-        }
-        
-        return true;
-    }
-}
-
-// File upload security
-class FileSecurity {
-    private static $allowedTypes = [
-        'image/jpeg' => 'jpg',
-        'image/png' => 'png',
-        'image/gif' => 'gif',
-        'application/pdf' => 'pdf',
-        'text/plain' => 'txt'
-    ];
-    
-    private static $maxSize = 5242880; // 5MB
-    
-    public static function validateUpload($file) {
-        if (!isset($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
-            return ['valid' => false, 'error' => 'No file uploaded'];
-        }
-        
-        // Check file size
-        if ($file['size'] > self::$maxSize) {
-            return ['valid' => false, 'error' => 'File too large'];
-        }
-        
-        // Check MIME type
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mimeType = finfo_file($finfo, $file['tmp_name']);
-        finfo_close($finfo);
-        
-        if (!array_key_exists($mimeType, self::$allowedTypes)) {
-            return ['valid' => false, 'error' => 'File type not allowed'];
-        }
-        
-        // Generate safe filename
-        $extension = self::$allowedTypes[$mimeType];
-        $filename = uniqid() . '_' . time() . '.' . $extension;
-        
-        return [
-            'valid' => true,
-            'filename' => $filename,
-            'mime_type' => $mimeType,
-            'extension' => $extension
-        ];
-    }
-}
-
-// SQL injection prevention enhancement
-class SQLSecurity {
-    public static function validateIdentifier($identifier) {
-        // Only allow alphanumeric characters and underscores
-        return preg_match('/^[a-zA-Z0-9_]+$/', $identifier);
-    }
-    
-    public static function escapeLike($string) {
-        // Escape LIKE wildcards
-        return str_replace(['%', '_'], ['\\%', '\\_'], $string);
-    }
-    
-    public static function buildWhereClause($conditions, $params = []) {
-        $where = [];
-        $values = [];
-        
-        foreach ($conditions as $field => $value) {
-            if (self::validateIdentifier($field)) {
-                if (is_array($value)) {
-                    $placeholders = str_repeat('?,', count($value) - 1) . '?';
-                    $where[] = "$field IN ($placeholders)";
-                    $values = array_merge($values, $value);
-                } else {
-                    $where[] = "$field = ?";
-                    $values[] = $value;
-                }
-            }
-        }
-        
-        return [
-            'clause' => implode(' AND ', $where),
-            'params' => $values
-        ];
-    }
-}
-
-// Initialize security features
-SessionSecurity::secure();
-SecurityHeaders::set();
-
-// Helper functions for backward compatibility
-function secure_csrf_token() {
-    return CSRFProtection::generateToken();
-}
-
-function verify_secure_csrf($token) {
-    return CSRFProtection::verifyToken($token);
-}
-
-function sanitize_input($input, $type = 'string') {
-    switch ($type) {
-        case 'email':
-            return InputSanitizer::sanitizeEmail($input);
-        case 'int':
-            return InputSanitizer::sanitizeInteger($input);
-        case 'date':
-            return InputSanitizer::sanitizeDate($input);
-        default:
-            return InputSanitizer::sanitizeString($input);
-    }
-}
-
-function check_rate_limit($action, $identifier = null) {
-    return RateLimiter::check($action, $identifier);
+// Log security events
+function log_security_event($event_type, $details = []) {
+    log_message('warning', 'Security event: ' . $event_type, array_merge([
+        'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+        'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
+        'request_uri' => $_SERVER['REQUEST_URI'] ?? 'unknown',
+        'referer' => $_SERVER['HTTP_REFERER'] ?? 'unknown'
+    ], $details));
 }

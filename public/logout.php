@@ -1,6 +1,12 @@
 <?php
 require_once __DIR__ . '/../includes/config.php';
-if (session_status() === PHP_SESSION_NONE) session_start();
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 session_destroy();
-header('Location: ' . APP_URL . '/login.php');
+
+// Redirect to login - server is running from public directory
+header('Location: /login.php');
 exit;
