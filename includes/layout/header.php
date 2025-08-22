@@ -121,14 +121,17 @@ require_once __DIR__ . '/../functions.php';
 
           <!-- User Menu / Auth -->
           <div class="flex items-center space-x-4">
-            <?php if(isset($_SESSION['user'])): ?>
+            <?php 
+            require_once __DIR__ . '/../auth.php';
+            $user = current_user();
+            if(is_logged_in() && $user): ?>
               <!-- User dropdown -->
               <div class="relative" id="userDropdown">
                 <button onclick="toggleUserDropdown()" class="flex items-center space-x-3 text-sm rounded-xl focus-ring p-3 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 transition-all duration-300 border border-transparent hover:border-gray-200">
                   <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center shadow-md">
-                    <span class="text-white font-semibold text-sm"><?php echo strtoupper(substr($user['name'] ?? 'U', 0, 1)); ?></span>
+                    <span class="text-white font-semibold text-sm"><?php echo strtoupper(substr($user['first_name'] ?? 'U', 0, 1)); ?></span>
                   </div>
-                  <span class="hidden sm:block text-gray-700 font-medium"><?php echo h($_SESSION['user']['name'] ?? 'User'); ?></span>
+                  <span class="hidden sm:block text-gray-700 font-medium"><?php echo h($user['first_name'] . ' ' . $user['last_name']); ?></span>
                   <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                   </svg>
