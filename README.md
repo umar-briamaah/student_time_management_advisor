@@ -126,10 +126,10 @@ composer install
 
 ```bash
 # Build production CSS
-./build-css.sh
+npm run build
 
 # Or for development (watch mode)
-./dev-css.sh
+npm run dev
 ```
 
 ### 5. **Start Development Server**
